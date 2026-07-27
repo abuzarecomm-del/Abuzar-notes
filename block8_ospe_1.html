@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Block 8 — Specimen Log | OSPE &amp; Viva Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600;9..144,700;9..144,900&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F3EEE1;
+    --paper-deep:#EAE2CC;
+    --line:#D8CDAE;
+    --ink:#20261F;
+    --ink-soft:#5B6156;
+    --card:#FBF8EF;
+
+    --path:#167D6E;   --path-soft:#DCEEE9;
+    --micro:#6A4C93;  --micro-soft:#E9E2F1;
+    --pharm:#AD7A22;  --pharm-soft:#F3E7CC;
+    --forensic:#9B3B3B; --forensic-soft:#F2DEDE;
+    --surgery:#2E5C8A; --surgery-soft:#DEE6F0;
+    --medicine:#3F7A4A; --medicine-soft:#DEEBDF;
+    --cfrc:#55606E;   --cfrc-soft:#E4E7EB;
+    --perls:#A9822E;  --perls-soft:#F1E6C9;
+
+    --shadow: 0 1px 0 rgba(32,38,31,0.06), 0 8px 24px -12px rgba(32,38,31,0.25);
+    --radius: 3px;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      repeating-linear-gradient(180deg, transparent 0 34px, var(--line) 35px 36px),
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.55;
+    font-size:15.5px;
+  }
+  h1,h2,h3,h4{font-family:'Fraunces', serif; margin:0; letter-spacing:-0.01em;}
+  code, .mono{font-family:'IBM Plex Mono', monospace;}
+  a{color:inherit;}
+  ::selection{background:#20261F; color:#F3EEE1;}
+
+  /* ===== Loading stamp ===== */
+  #stamp-overlay{
+    position:fixed; inset:0; z-index:999; background:var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    transition:opacity .5s ease, visibility .5s ease;
+  }
+  #stamp-overlay.hide{opacity:0; visibility:hidden; pointer-events:none;}
+  .stamp{
+    border:4px solid var(--forensic); color:var(--forensic);
+    padding:18px 34px; font-family:'IBM Plex Mono',monospace; font-weight:700;
+    letter-spacing:0.18em; font-size:15px; text-transform:uppercase;
+    transform:scale(2.4) rotate(-8deg); opacity:0;
+    animation: stampdown .55s .3s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  @keyframes stampdown{
+    0%{transform:scale(2.4) rotate(-8deg); opacity:0;}
+    60%{transform:scale(0.94) rotate(-8deg); opacity:1;}
+    100%{transform:scale(1) rotate(-8deg); opacity:1;}
+  }
+
+  /* ===== Layout shell ===== */
+  .shell{display:flex; min-height:100vh;}
+
+  /* Sidebar */
+  .sidebar{
+    width:250px; flex-shrink:0; background:var(--paper-deep);
+    border-right:1px solid var(--line); position:sticky; top:0; height:100vh;
+    overflow-y:auto; padding:22px 16px 40px;
+  }
+  .brand{margin-bottom:18px;}
+  .brand .kicker{font-family:'IBM Plex Mono',monospace; font-size:10.5px; letter-spacing:.16em; color:var(--ink-soft); text-transform:uppercase;}
+  .brand h1{font-size:26px; font-weight:700; margin-top:4px;}
+  .brand .sub{font-size:12.5px; color:var(--ink-soft); margin-top:2px;}
+
+  .search-wrap{margin:16px 0 20px; position:relative;}
+  .search-wrap input{
+    width:100%; padding:9px 12px 9px 30px; border:1px solid var(--line);
+    background:var(--card); border-radius:var(--radius); font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px; color:var(--ink); outline:none;
+  }
+  .search-wrap input:focus{border-color:var(--ink);}
+  .search-wrap::before{
+    content:"⌕"; position:absolute; left:9px; top:8px; font-size:14px; color:var(--ink-soft);
+  }
+
+  .navlist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:3px;}
+  .navlist a{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    padding:8px 10px; border-radius:var(--radius); text-decoration:none;
+    font-size:13px; font-weight:500; color:var(--ink); border-left:3px solid transparent;
+  }
+  .navlist a:hover{background:var(--card);}
+  .navlist a.active{background:var(--card); border-left-color:var(--tab,var(--ink));}
+  .navlist .tag{width:9px; height:9px; border-radius:2px; background:var(--tab,var(--ink)); flex-shrink:0;}
+  .navlist .name{flex:1; display:flex; align-items:center; gap:8px;}
+  .navlist .marks{font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--ink-soft);}
+
+  .sidebar-foot{margin-top:22px; padding-top:14px; border-top:1px dashed var(--line); font-size:11px; color:var(--ink-soft);}
+
+  /* Main */
+  .main{flex:1; min-width:0; padding:0;}
+  .container{max-width:980px; margin:0 auto; padding:38px 40px 100px;}
+
+  /* Hero */
+  .hero{margin-bottom:30px;}
+  .hero .eyebrow{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-soft); border-bottom:1px solid var(--line); padding-bottom:10px; margin-bottom:14px;
+    display:flex; justify-content:space-between;
+  }
+  .hero h2{font-size:44px; line-height:1.05; font-weight:700; max-width:640px;}
+  .hero h2 em{font-style:normal; color:var(--forensic);}
+  .hero p.desc{max-width:600px; color:var(--ink-soft); margin-top:14px; font-size:14.5px;}
+
+  .module-chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px;}
+  .chip{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; border:1px solid var(--line);
+    background:var(--card); padding:5px 10px; border-radius:20px; color:var(--ink-soft);
+  }
+
+  .stat-row{display:flex; gap:14px; margin-top:26px; flex-wrap:wrap;}
+  .stat-card{
+    background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:14px 18px; min-width:112px; box-shadow:var(--shadow);
+  }
+  .stat-card .num{font-family:'Fraunces',serif; font-size:32px; font-weight:700; line-height:1;}
+  .stat-card .label{font-size:10.5px; color:var(--ink-soft); text-transform:uppercase; letter-spacing:.08em; margin-top:5px;}
+
+  /* ECG divider */
+  .ecg{width:100%; height:34px; margin:30px 0 6px; overflow:hidden;}
+  .ecg svg{width:200%; height:100%; animation:ecgmove 7s linear infinite;}
+  @keyframes ecgmove{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  /* Section headers */
+  .section{padding-top:64px; margin-top:-64px;}
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+    border-bottom:2px solid var(--ink); padding-bottom:10px; margin-bottom:6px;
+  }
+  .section-head .titlewrap{display:flex; align-items:baseline; gap:12px;}
+  .section-head .idx{font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--ink-soft);}
+  .section-head h2{font-size:26px; font-weight:700;}
+  .section-marks{
+    font-family:'IBM Plex Mono',monospace; font-size:12px; padding:4px 10px; border-radius:20px; color:#fff;
+    white-space:nowrap;
+  }
+  .section-note{font-size:13px; color:var(--ink-soft); margin:10px 0 22px; max-width:660px;}
+
+  /* Overview: marks table */
+  .table-wrap{overflow-x:auto; margin:20px 0 10px; border:1px solid var(--line); border-radius:var(--radius); background:var(--card);}
+  table{width:100%; border-collapse:collapse; font-size:12.8px;}
+  thead th{
+    background:var(--paper-deep); font-family:'IBM Plex Mono',monospace; font-weight:600;
+    text-transform:uppercase; letter-spacing:.03em; font-size:10.5px; color:var(--ink-soft);
+    padding:9px 10px; text-align:center; border-bottom:1px solid var(--line);
+  }
+  thead th:first-child{text-align:left;}
+  tbody td{padding:8px 10px; text-align:center; border-bottom:1px solid var(--line);}
+  tbody td:first-child{text-align:left; font-weight:600; display:flex; align-items:center; gap:8px;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr.total td{font-weight:700; background:var(--paper-deep);}
+  .dot{width:9px; height:9px; border-radius:2px; flex-shrink:0;}
+
+  /* bar chart */
+  .barchart{margin:26px 0 8px; display:flex; flex-direction:column; gap:9px;}
+  .barrow{display:grid; grid-template-columns:130px 1fr 46px; align-items:center; gap:10px; font-size:12px;}
+  .barrow .barlabel{font-weight:600; display:flex; align-items:center; gap:7px;}
+  .bartrack{background:var(--paper-deep); border-radius:20px; height:11px; overflow:hidden; border:1px solid var(--line);}
+  .barfill{height:100%; border-radius:20px; width:0; transition:width 1s cubic-bezier(.2,.8,.2,1);}
+  .barrow .barval{font-family:'IBM Plex Mono',monospace; text-align:right; color:var(--ink-soft);}
+
+  /* Coverage map */
+  .coverage-wrap{overflow-x:auto; margin:14px 0 6px; border:1px solid var(--line); border-radius:var(--radius); background:var(--card);}
+  .coverage-wrap table{font-size:12px;}
+  .coverage-wrap td:first-child{font-family:'IBM Plex Mono',monospace; font-size:11px; font-weight:600; white-space:nowrap;}
+  .covok{color:var(--path); font-weight:700;}
+
+  /* Station specimen ticket */
+  .station{
+    position:relative; background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:22px; padding:20px 22px 20px 22px; box-shadow:var(--shadow);
+    border-left:5px solid var(--tab,var(--ink));
+  }
+  .station .stlabel{
+    display:flex; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap;
+  }
+  .station .code{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; padding:3px 8px; border-radius:3px;
+    background:var(--tab-soft, var(--paper-deep)); color:var(--tab,var(--ink)); font-weight:600;
+  }
+  .station h3{font-size:18.5px; font-weight:600;}
+  .station .body p{margin:0 0 10px;}
+  .station .body ul{margin:0 0 10px; padding-left:20px;}
+  .station .body li{margin-bottom:4px;}
+  .station .body strong{color:var(--tab, var(--ink));}
+
+  .mini-table{width:100%; border-collapse:collapse; font-size:12px; margin:10px 0 14px;}
+  .mini-table th, .mini-table td{padding:6px 8px; border:1px solid var(--line); text-align:left;}
+  .mini-table th{background:var(--tab-soft, var(--paper-deep)); font-family:'IBM Plex Mono',monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.02em;}
+
+  .callout{
+    font-size:12.8px; border-left:3px solid var(--tab, var(--ink)); background:var(--tab-soft, var(--paper-deep));
+    padding:8px 12px; border-radius:0 3px 3px 0; margin:10px 0 14px;
+  }
+
+
+  /* Figure / diagram block */
+  .figure{
+    margin:14px 0; border:1px solid var(--line); background:var(--paper-deep);
+    border-radius:3px; padding:14px; text-align:center;
+  }
+  .figure svg{max-width:100%; height:auto; display:block; margin:0 auto;}
+  .figure figcaption{font-size:11px; color:var(--ink-soft); margin-top:8px; font-style:italic;}
+  .fig-row{display:flex; gap:14px; flex-wrap:wrap;}
+  .fig-row .figure{flex:1; min-width:200px;}
+
+  /* Q&A accordion */
+  .qa{margin-top:14px; border-top:1px dashed var(--line); padding-top:12px;}
+  .qa-item{border-bottom:1px dashed var(--line);}
+  .qa-item:last-child{border-bottom:none;}
+  .qa-q{
+    display:flex; align-items:center; gap:10px; cursor:pointer; padding:9px 2px;
+    font-size:13.3px; font-weight:600; user-select:none;
+  }
+  .qa-q .qmark{
+    font-family:'IBM Plex Mono',monospace; font-size:11px; color:#fff; background:var(--tab, var(--ink));
+    width:18px; height:18px; border-radius:50%; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .qa-q .arrow{margin-left:auto; transition:transform .25s ease; color:var(--ink-soft); font-size:11px;}
+  .qa-item.open .arrow{transform:rotate(90deg);}
+  .qa-a{
+    max-height:0; overflow:hidden; transition:max-height .3s ease;
+    font-size:13px; color:var(--ink-soft); padding-left:28px;
+  }
+  .qa-item.open .qa-a{padding-bottom:12px;}
+  .qa-a p{margin:0;}
+
+  /* Viva bank */
+  .vivabank .vgroup{margin-bottom:34px;}
+  .vgroup-head{
+    display:flex; align-items:center; gap:10px; margin-bottom:12px;
+  }
+  .vgroup-head .dot-lg{width:12px; height:12px; border-radius:3px;}
+  .vgroup-head h3{font-size:18px; font-weight:600;}
+  .vgroup-head span{font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--ink-soft);}
+
+  .vscenario{
+    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--tab,var(--ink));
+    border-radius:var(--radius); margin-bottom:12px; padding:14px 18px;
+  }
+  .vscenario .scenario-text{font-size:13px; color:var(--ink); margin-bottom:8px; font-style:italic;}
+  .vscenario .subq{padding:6px 0; border-top:1px dashed var(--line); cursor:pointer;}
+  .vscenario .subq:first-of-type{border-top:none;}
+  .vscenario .subq .qline{display:flex; gap:8px; font-size:12.8px; font-weight:600;}
+  .vscenario .subq .qline .arrow{margin-left:auto; color:var(--ink-soft); font-size:11px; transition:transform .25s;}
+  .vscenario .subq.open .qline .arrow{transform:rotate(90deg);}
+  .vscenario .subq .ans{max-height:0; overflow:hidden; transition:max-height .3s ease; font-size:12.5px; color:var(--ink-soft); padding-left:18px;}
+  .vscenario .subq.open .ans{max-height:400px; padding-top:6px; padding-bottom:4px;}
+
+  /* footer */
+  .sitefoot{
+    text-align:center; padding:40px 20px 60px; color:var(--ink-soft); font-size:12px;
+    border-top:1px dashed var(--line); margin-top:50px;
+  }
+
+  .back-top{
+    position:fixed; bottom:22px; right:22px; width:38px; height:38px; border-radius:50%;
+    background:var(--ink); color:var(--paper); display:flex; align-items:center; justify-content:center;
+    text-decoration:none; box-shadow:var(--shadow); opacity:0; pointer-events:none; transition:opacity .3s;
+    font-size:16px;
+  }
+  .back-top.show{opacity:1; pointer-events:auto;}
+
+  .hamburger{display:none;}
+
+  .no-match{display:none !important;}
+  .empty-note{font-size:13px; color:var(--ink-soft); font-style:italic; padding:20px 0;}
+
+  @media (max-width:860px){
+    .sidebar{
+      position:fixed; left:0; top:0; height:100vh; z-index:60; transform:translateX(-100%);
+      transition:transform .3s ease; box-shadow:0 0 40px rgba(0,0,0,.25);
+    }
+    .sidebar.open{transform:translateX(0);}
+    .hamburger{
+      display:flex; position:fixed; top:16px; left:16px; z-index:70; width:38px; height:38px;
+      align-items:center; justify-content:center; background:var(--ink); color:var(--paper); border-radius:50%;
+      box-shadow:var(--shadow); cursor:pointer; font-size:16px;
+    }
+    .container{padding:70px 20px 80px;}
+    .hero h2{font-size:32px;}
+    .barrow{grid-template-columns:100px 1fr 40px;}
+    .fig-row{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div id="stamp-overlay"><div class="stamp">Specimen Received — Block 8</div></div>
+
+<div class="hamburger" id="hamburger">☰</div>
+
+<div class="shell">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <div class="kicker">UHS · MBBS Year 3</div>
+      <h1>Block 8</h1>
+      <div class="sub">Specimen Log — OSPE + Viva Atlas</div>
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" id="searchbox" placeholder="search a station, drug, organism…">
+    </div>
+
+    <ul class="navlist" id="navlist">
+      <li><a href="#overview" style="--tab:var(--ink)"><span class="name"><span class="tag"></span>Overview</span></a></li>
+      <li><a href="#pathology" style="--tab:var(--path)"><span class="name"><span class="tag"></span>Pathology</span><span class="marks">60</span></a></li>
+      <li><a href="#microbiology" style="--tab:var(--micro)"><span class="name"><span class="tag"></span>Microbiology</span><span class="marks">↳ Path</span></a></li>
+      <li><a href="#pharmacology" style="--tab:var(--pharm)"><span class="name"><span class="tag"></span>Pharmacology</span><span class="marks">38</span></a></li>
+      <li><a href="#forensic" style="--tab:var(--forensic)"><span class="name"><span class="tag"></span>Forensic Medicine</span><span class="marks">08</span></a></li>
+      <li><a href="#medicine" style="--tab:var(--medicine)"><span class="name"><span class="tag"></span>Medicine</span><span class="marks">08</span></a></li>
+      <li><a href="#surgery" style="--tab:var(--surgery)"><span class="name"><span class="tag"></span>Surgery</span><span class="marks">08</span></a></li>
+      <li><a href="#cfrc" style="--tab:var(--cfrc)"><span class="name"><span class="tag"></span>CFRC</span><span class="marks">08</span></a></li>
+      <li><a href="#perls" style="--tab:var(--perls)"><span class="name"><span class="tag"></span>PERLs + ExposITory</span><span class="marks">10</span></a></li>
+      <li><a href="#vivabank" style="--tab:var(--ink)"><span class="name"><span class="tag"></span>Viva Bank</span></a></li>
+    </ul>
+
+    <div class="sidebar-foot">
+      140 oral marks · 28 stations<br>
+      Modules 16–19 · Neoplasia → Forensic Tox-II<br>
+      All practicals cross-checked below ↓
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="container">
+
+      <!-- OVERVIEW -->
+      <section class="section" id="overview">
+        <div class="hero">
+          <div class="eyebrow"><span>Requisition Form No. 08</span><span id="livedate"></span></div>
+          <h2>Every specimen tells a story. <em>Read the label first.</em></h2>
+          <p class="desc">A station-by-station companion for Block 8's Oral/OSPE/OSCE/OSVE exam — Neoplasia, Infectious Diseases, Musculoskeletal &amp; Locomotion-II, and Forensic Medicine &amp; Toxicology-II — built from the actual station compilation and the UHS Block 8 syllabus/practicals, with diagrammatic references and a drillable viva bank.</p>
+
+          <div class="module-chips">
+            <span class="chip">Module 16 · Neoplasia</span>
+            <span class="chip">Module 17 · Infectious Diseases</span>
+            <span class="chip">Module 18 · MSK &amp; Locomotion-II</span>
+            <span class="chip">Module 19 · Forensic Med &amp; Tox-II</span>
+          </div>
+
+          <div class="stat-row">
+            <div class="stat-card"><div class="num" data-count="140">0</div><div class="label">Oral Marks</div></div>
+            <div class="stat-card"><div class="num" data-count="7">0</div><div class="label">Graded Subjects</div></div>
+            <div class="stat-card"><div class="num" data-count="28">0</div><div class="label">Stations</div></div>
+            <div class="stat-card"><div class="num" data-count="60">0</div><div class="label">Viva Q&amp;A</div></div>
+          </div>
+        </div>
+
+        <div class="ecg">
+          <svg viewBox="0 0 600 60" preserveAspectRatio="none">
+            <polyline fill="none" stroke="#9B3B3B" stroke-width="2"
+              points="0,30 40,30 55,30 62,10 70,50 78,5 86,30 100,30 140,30 155,30 162,10 170,50 178,5 186,30 200,30
+                      240,30 255,30 262,10 270,50 278,5 286,30 300,30 340,30 355,30 362,10 370,50 378,5 386,30 400,30
+                      440,30 455,30 462,10 470,50 478,5 486,30 500,30 540,30 555,30 562,10 570,50 578,5 586,30 600,30" />
+          </svg>
+        </div>
+
+        <div class="section-head" style="border-color:var(--line); margin-top:14px;">
+          <div class="titlewrap"><h2 style="font-size:20px;">Oral / Practical / Clinical Exam — Marks Distribution</h2></div>
+        </div>
+        <p class="section-note">This atlas covers only the <strong>Oral/OSPE/OSCE/OSVE</strong> component of Block 8 (the written MCQ paper is separate). OSPE/OSCE stations are 8 marks each (observed), the single OSCE station is 10 marks, and each OSVE station is 14 marks.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Subject</th><th>OSPE/OSCE (8 ea)</th><th>OSCE (10 ea)</th><th>OSVE (14 ea)</th><th>Oral Marks</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><span class="dot" style="background:var(--pharm)"></span>Pharmacology</td><td>03</td><td>–</td><td>01</td><td>38</td></tr>
+              <tr><td><span class="dot" style="background:var(--path)"></span>Pathology (incl. Microbiology)</td><td>04</td><td>–</td><td>02</td><td>60</td></tr>
+              <tr><td><span class="dot" style="background:var(--surgery)"></span>Surgery</td><td>01</td><td>–</td><td>–</td><td>08</td></tr>
+              <tr><td><span class="dot" style="background:var(--medicine)"></span>Medicine</td><td>01</td><td>–</td><td>–</td><td>08</td></tr>
+              <tr><td><span class="dot" style="background:var(--forensic)"></span>Forensic</td><td>01</td><td>–</td><td>–</td><td>08</td></tr>
+              <tr><td><span class="dot" style="background:var(--cfrc)"></span>CFRC</td><td>01</td><td>–</td><td>–</td><td>08</td></tr>
+              <tr><td><span class="dot" style="background:var(--perls)"></span>PERLs + ExposITory</td><td>–</td><td>01</td><td>–</td><td>10</td></tr>
+              <tr class="total"><td>TOTAL</td><td>11 × 8 = 88</td><td>1 × 10 = 10</td><td>3 × 14 = 42</td><td>140</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="section-note" style="font-size:11.5px;">Community Medicine, Behavioral Sciences &amp; Patient Safety are written-only for Block 8 — no oral station, so they're excluded from this table and from this atlas. Microbiology has no separate oral slot; it is examined within Pathology's 60 marks.</p>
+
+        <div class="barchart" id="barchart">
+          <div class="barrow"><span class="barlabel"><span class="dot" style="background:var(--path)"></span>Pathology</span><div class="bartrack"><div class="barfill" data-w="60" style="background:var(--path)"></div></div><span class="barval">60</span></div>
+          <div class="barrow"><span class="barlabel"><span class="dot" style="background:var(--pharm)"></span>Pharmacology</span><div class="bartrack"><div class="barfill" data-w="38" style="background:var(--pharm)"></div></div><span class="barval">38</span></div>
+          <div class="barrow"><span class="barlabel"><span class="dot" style="background:var(--perls)"></span>PERLs+Expo</span><div class="bartrack"><div class="barfill" data-w="10" style="background:var(--perls)"></div></div><span class="barval">10</span></div>
+          <div class="barrow"><span class="barlabel"><span class="dot" style="background:var(--surgery)"></span>Surgery</span><div class="bartrack"><div class="barfill" data-w="8" style="background:var(--surgery)"></div></div><span class="barval">08</span></div>
+          <div class="barrow"><span class="barlabel"><span class="dot" style="background:var(--medicine)"></span>Medicine</span><div class="bartrack"><div class="barfill" data-w="8" style="background:var(--medicine)"></div></div><span class="barval">08</span></div>
+          <div class="barrow"><span class="barlabel"><span class="dot" style="background:var(--forensic)"></span>Forensic</span><div class="bartrack"><div class="barfill" data-w="8" style="background:var(--forensic)"></div></div><span class="barval">08</span></div>
+          <div class="barrow"><span class="barlabel"><span class="dot" style="background:var(--cfrc)"></span>CFRC</span><div class="bartrack"><div class="barfill" data-w="8" style="background:var(--cfrc)"></div></div><span class="barval">08</span></div>
+        </div>
+
+        <div class="section-head" style="border-color:var(--line); margin-top:36px;">
+          <div class="titlewrap"><h2 style="font-size:20px;">Practicals Coverage Map</h2></div>
+        </div>
+        <p class="section-note">Every practical learning-outcome code from the Block 8 syllabus, cross-checked against a station in this atlas — so you can confirm nothing on the official practicals list has been missed.</p>
+        <div class="coverage-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>Practical topic</th><th>Covered in</th></tr></thead>
+            <tbody>
+              <tr><td>N-Pa-008</td><td>Gross/micro ID — benign vs malignant tumours (lipoma, leiomyoma, fibroadenoma, DCIS, Bowen's, adenocarcinoma, SCC)</td><td class="covok">✓ Pathology — Station 1</td></tr>
+              <tr><td>ID-Pa-009</td><td>Staining — Gram +/-, AFB</td><td class="covok">✓ Microbiology — Stations 1, 2, 5</td></tr>
+              <tr><td>ID-Pa-010</td><td>Culture sensitivity report / antibiogram interpretation</td><td class="covok">✓ Microbiology — Station 5</td></tr>
+              <tr><td>ID-Pa-011</td><td>Growth on culture media (blood/chocolate/nutrient/TCBS/MacConkey/LJ/CLED/TSI/urease/citrate/blood culture bottles/anaerobic jars)</td><td class="covok">✓ Microbiology — Stations 2, 5</td></tr>
+              <tr><td>ID-Pa-012</td><td>Stool &amp; urine exam — ova, cysts, trophozoites (protozoa, helminths, cestodes, schistosomes)</td><td class="covok">✓ Microbiology — Station 4; Pathology — Station 5</td></tr>
+              <tr><td>ID-Pa-015</td><td>Catalase, coagulase, oxidase tests</td><td class="covok">✓ Microbiology — Station 5</td></tr>
+              <tr><td>ID-Ph-009</td><td>APC powder &amp; carminative mixture dispensing; prescription writing (UTI, dysentery, malaria, amoebiasis, helminths, hepatitis B/C, dengue, COVID, typhoid, CAP, pulmonary TB)</td><td class="covok">✓ Pharmacology — Station 1</td></tr>
+              <tr><td>MS2-Pa-002</td><td>Lab test interpretation — CBC, ESR, CRP, CK, RF, ANA, ANCA, uric acid; osteomyelitis, osteosarcoma, lipoma, hemangioma morphology</td><td class="covok">✓ Pathology — Stations 3, 6</td></tr>
+              <tr><td>MS2-Ra-001</td><td>Imaging — X-ray, CT, ultrasound, bone scan in MSK disorders</td><td class="covok">✓ Surgery — Station 3</td></tr>
+              <tr><td>MS2-Ph-003</td><td>NMJ blockers on frog rectus/animal models; prescription writing for RA, gout, OA</td><td class="covok">✓ Pharmacology — Stations 4, 5</td></tr>
+              <tr><td>For2-Tr-028</td><td>Weapon identification — blunt, sharp, firearms, electrical, chemical</td><td class="covok">✓ Forensic — Station 5</td></tr>
+              <tr><td>For2-Tr-029/030/031</td><td>Abrasion types; bruise ageing vs postmortem staining; laceration vs incised wound</td><td class="covok">✓ Forensic — Station 6</td></tr>
+              <tr><td>For2-Tr-032/033/034</td><td>Fracture on X-ray; Qisas &amp; Diyat hurt classification; injury certification</td><td class="covok">✓ Forensic — Station 7</td></tr>
+              <tr><td>For2-Tr-035</td><td>Firearm parts, ammunition, entry/exit wounds, range estimation</td><td class="covok">✓ Forensic — Station 8</td></tr>
+              <tr><td>For2-Tr-036/037</td><td>Burns (dry/wet, %BSA) &amp; electrocution patterns</td><td class="covok">✓ Forensic — Station 9</td></tr>
+              <tr><td>For2-Tr-038/039</td><td>Thermal extremes, starvation, chemical burns</td><td class="covok">✓ Forensic — Station 10</td></tr>
+              <tr><td>For2-Se-008</td><td>Sexology — medico-legal exam &amp; sample handling (practical hours only; not part of the 1 examined Forensic OSPE station)</td><td class="covok">✓ Forensic — Station 11 (reference)</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PATHOLOGY -->
+      <section class="section" id="pathology">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">01</span><h2>Pathology</h2></div>
+          <span class="section-marks" style="background:var(--path)">4×OSPE + 2×OSVE = 60 marks</span>
+        </div>
+        <p class="section-note">Neoplasia (Module 16) dominates this subject — general oncologic concepts plus gross/microscopic identification of benign vs malignant tumours — with systemic-pathology carry-overs from MSK, infectious disease and clinical pathology practicals.</p>
+
+        <div class="station" style="--tab:var(--path); --tab-soft:var(--path-soft)">
+          <div class="stlabel"><span class="code">N-Pa-008</span></div>
+          <h3>Station 1 · Gross &amp; Microscopic ID — Benign vs Malignant Tumours</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Lipoma</strong> — encapsulated, lobulated mass of mature adipocytes indistinguishable from normal fat; the softest, most mobile "swelling" on gross exam.</li>
+              <li><strong>Leiomyoma</strong> — well-circumscribed, whorled bundles of interlacing smooth muscle fascicles ("whorled/onion-skin" appearance on cut section).</li>
+              <li><strong>Fibroadenoma of breast</strong> — biphasic tumour (stroma + epithelium), pericanalicular (stroma surrounds round ducts) or intracanalicular (stroma compresses ducts into slits) growth pattern, "mouse-eared", freely mobile "breast mouse" on exam.</li>
+              <li><strong>DCIS &amp; Bowen's disease</strong> — malignant cells confined within duct/epidermis, basement membrane intact, no stromal invasion; Bowen's disease is essentially SCC-in-situ of the skin.</li>
+              <li><strong>Adenocarcinoma (colon)</strong> — gland-forming malignant epithelium, "back-to-back" glands with scant intervening stroma and a desmoplastic (fibrous) reaction.</li>
+              <li><strong>Squamous cell carcinoma</strong> — keratin pearls + intercellular bridges; common sites: skin, lip, oesophagus, cervix, larynx, lung.</li>
+            </ul>
+
+            <div class="fig-row">
+              <figure class="figure">
+                <svg viewBox="0 0 220 150" width="220" height="150">
+                  <circle cx="110" cy="75" r="60" fill="none" stroke="#167D6E" stroke-width="2" stroke-dasharray="4 3"/>
+                  <g fill="#B98C63" opacity="0.9">
+                    <circle cx="80" cy="55" r="16"/><circle cx="115" cy="48" r="18"/><circle cx="145" cy="60" r="15"/>
+                    <circle cx="70" cy="90" r="17"/><circle cx="105" cy="95" r="19"/><circle cx="140" cy="92" r="16"/>
+                    <circle cx="90" cy="120" r="14"/><circle cx="125" cy="122" r="15"/>
+                  </g>
+                  <g fill="none" stroke="#5B6156" stroke-width="1">
+                    <circle cx="80" cy="55" r="16"/><circle cx="115" cy="48" r="18"/><circle cx="145" cy="60" r="15"/>
+                    <circle cx="70" cy="90" r="17"/><circle cx="105" cy="95" r="19"/><circle cx="140" cy="92" r="16"/>
+                    <circle cx="90" cy="120" r="14"/><circle cx="125" cy="122" r="15"/>
+                  </g>
+                </svg>
+                <figcaption>Lipoma — sheets of mature adipocytes within a thin encapsulating rim (diagrammatic).</figcaption>
+              </figure>
+              <figure class="figure">
+                <svg viewBox="0 0 220 150" width="220" height="150">
+                  <g fill="none" stroke="#167D6E" stroke-width="2">
+                    <ellipse cx="70" cy="60" rx="20" ry="13"/>
+                    <ellipse cx="115" cy="50" rx="18" ry="12"/>
+                    <ellipse cx="150" cy="70" rx="19" ry="13"/>
+                    <ellipse cx="80" cy="100" rx="17" ry="12"/>
+                    <ellipse cx="130" cy="105" rx="20" ry="13"/>
+                    <ellipse cx="160" cy="100" rx="15" ry="10"/>
+                  </g>
+                  <g fill="#9B3B3B" opacity="0.15">
+                    <ellipse cx="70" cy="60" rx="20" ry="13"/>
+                    <ellipse cx="115" cy="50" rx="18" ry="12"/>
+                    <ellipse cx="150" cy="70" rx="19" ry="13"/>
+                    <ellipse cx="80" cy="100" rx="17" ry="12"/>
+                    <ellipse cx="130" cy="105" rx="20" ry="13"/>
+                    <ellipse cx="160" cy="100" rx="15" ry="10"/>
+                  </g>
+                </svg>
+                <figcaption>Adenocarcinoma — malignant glands packed "back-to-back" with minimal intervening stroma (diagrammatic).</figcaption>
+              </figure>
+              <figure class="figure">
+                <svg viewBox="0 0 220 150" width="220" height="150">
+                  <g>
+                    <circle cx="110" cy="75" r="10" fill="#F3E7CC" stroke="#AD7A22" stroke-width="2"/>
+                    <circle cx="110" cy="75" r="20" fill="none" stroke="#AD7A22" stroke-width="2"/>
+                    <circle cx="110" cy="75" r="30" fill="none" stroke="#AD7A22" stroke-width="2"/>
+                    <circle cx="110" cy="75" r="40" fill="none" stroke="#AD7A22" stroke-width="2"/>
+                  </g>
+                </svg>
+                <figcaption>SCC — concentric "keratin pearl" whorl of keratinising squamous cells (diagrammatic).</figcaption>
+              </figure>
+            </div>
+
+            <table class="mini-table">
+              <tr><th>Feature</th><th>Benign</th><th>Malignant</th></tr>
+              <tr><td>Growth rate</td><td>Slow</td><td>Rapid</td></tr>
+              <tr><td>Border</td><td>Encapsulated / circumscribed</td><td>Infiltrative, irregular</td></tr>
+              <tr><td>Differentiation</td><td>Well differentiated</td><td>Variable — often poor (anaplasia)</td></tr>
+              <tr><td>Mitoses</td><td>Rare, normal</td><td>Frequent, abnormal (tripolar)</td></tr>
+              <tr><td>Metastasis</td><td>Never</td><td>Common</td></tr>
+            </table>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How is DCIS different from invasive ductal carcinoma?<span class="arrow">▸</span></div><div class="qa-a"><p>DCIS is confined by an intact basement membrane with no stromal invasion — it cannot metastasise until it progresses to invasive carcinoma.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Name the malignant tumour of vascular endothelium.<span class="arrow">▸</span></div><div class="qa-a"><p>Angiosarcoma.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What does the "T-shaped" abnormal cell on the anaplasia slide represent?<span class="arrow">▸</span></div><div class="qa-a"><p>An abnormal (tripolar/multipolar) mitotic figure — a hallmark of anaplasia reflecting loss of cell-cycle control.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How would you tell a fibroadenoma from a phyllodes tumour on gross exam?<span class="arrow">▸</span></div><div class="qa-a"><p>Fibroadenoma is small, firm, sharply circumscribed and slow-growing; a phyllodes tumour is typically larger, may show leaf-like clefts on cut section, and can recur/behave more aggressively.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--path); --tab-soft:var(--path-soft)">
+          <div class="stlabel"><span class="code">N-Pa-002/003/007</span></div>
+          <h3>Station 2 · Neoplasia — Concepts, TP53, Grading &amp; Staging</h3>
+          <div class="body">
+            <p><strong>Neoplasia (Willis)</strong> — an abnormal mass of tissue, growth of which exceeds and is uncoordinated with normal tissue, and persists after cessation of the stimuli that evoked the change.</p>
+            <ul>
+              <li><strong>TP53</strong> — "guardian of the genome"; arrests the cell cycle at G1/S for DNA repair or triggers apoptosis; mutated in &gt;50% of human cancers; germline mutation → Li-Fraumeni syndrome.</li>
+              <li><strong>Grading</strong> — degree of differentiation (how closely tumour cells resemble the tissue of origin).</li>
+              <li><strong>Staging (TNM)</strong> — anatomical extent of spread; <strong>T</strong>umour size/extent, <strong>N</strong>odal involvement, <strong>M</strong>etastasis. Carries greater prognostic weight than grade.</li>
+              <li><strong>Dysplasia</strong> — disordered, reversible pre-neoplastic epithelial change.</li>
+              <li><strong>Invasion vs metastasis</strong> — invasion = local spread through the basement membrane; metastasis = spread to a distant site via lymphatics, blood, or seeding of body cavities.</li>
+              <li><strong>Carcinogenic agents</strong> — chemical (aflatoxin → HCC, aromatic amines → bladder cancer, benzo[a]pyrene in smoke), physical (UV, ionizing radiation), biological (HPV → cervical cancer, HBV/HCV → HCC, H. pylori → gastric MALT lymphoma/adenocarcinoma).</li>
+              <li><strong>Tumour markers</strong> — AFP (hepatocellular carcinoma, yolk sac tumour), CEA (colorectal), CA-125 (ovarian), CA 19-9 (pancreatic), PSA (prostate), hCG (choriocarcinoma/germ cell tumours) — used for monitoring/response to treatment more than primary diagnosis.</li>
+              <li><strong>Paraneoplastic syndrome</strong> — symptom complex in a cancer patient not directly caused by tumour bulk/invasion/metastasis, but by secreted substances (e.g. PTHrP → hypercalcaemia in squamous lung cancer; ACTH → Cushing's in small-cell lung cancer).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which carries more prognostic value — grading or staging?<span class="arrow">▸</span></div><div class="qa-a"><p>Staging — the anatomical extent of spread predicts outcome more strongly than the degree of differentiation.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Name one hallmark of cancer related to blood supply.<span class="arrow">▸</span></div><div class="qa-a"><p>Sustained angiogenesis, driven mainly by VEGF secretion from tumour cells.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which tumour marker is raised in hepatocellular carcinoma?<span class="arrow">▸</span></div><div class="qa-a"><p>Alpha-fetoprotein (AFP).</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What germline syndrome results from inherited TP53 mutation?<span class="arrow">▸</span></div><div class="qa-a"><p>Li-Fraumeni syndrome — multiple early-onset cancers (sarcoma, breast, brain, adrenal).</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--path); --tab-soft:var(--path-soft)">
+          <div class="stlabel"><span class="code">MS2-Pa-002</span></div>
+          <h3>Station 3 · Lab Test Interpretation — Joint &amp; Muscle Disease Panel</h3>
+          <div class="body">
+            <p>A practical station: given a lab report, you interpret each value in the context of MSK disease.</p>
+            <table class="mini-table">
+              <tr><th>Test</th><th>What it tells you</th></tr>
+              <tr><td>CBC</td><td>Anaemia of chronic disease (RA), leukocytosis (septic arthritis/infection)</td></tr>
+              <tr><td>ESR / CRP</td><td>Non-specific inflammatory markers — raised in RA, infection, malignancy; CRP rises/falls faster than ESR, useful for monitoring response to treatment</td></tr>
+              <tr><td>CK (creatine kinase)</td><td>Muscle damage marker — markedly raised in DMD, myositis, rhabdomyolysis, MI</td></tr>
+              <tr><td>RF</td><td>Positive in ~70% of RA (also in Sjögren's, chronic infection) — not fully specific</td></tr>
+              <tr><td>ANA</td><td>Sensitive screening test for SLE and other connective tissue disease — not specific</td></tr>
+              <tr><td>ANCA</td><td>Vasculitis marker — c-ANCA (PR3) in granulomatosis with polyangiitis, p-ANCA (MPO) in microscopic polyangiitis/EGPA</td></tr>
+              <tr><td>Serum uric acid</td><td>Raised in gout (though can be normal during an acute attack)</td></tr>
+            </table>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>A patient has RA-like symptoms with positive c-ANCA. What does this suggest instead?<span class="arrow">▸</span></div><div class="qa-a"><p>A vasculitic process such as granulomatosis with polyangiitis, rather than classical RA.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why might serum uric acid be normal during an acute gout attack?<span class="arrow">▸</span></div><div class="qa-a"><p>Urate can shift into inflamed tissue/joint during the acute attack, so a single normal serum level doesn't exclude gout — clinical picture and joint fluid crystal analysis remain key.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--path); --tab-soft:var(--path-soft)">
+          <div class="stlabel"><span class="code">MS2-Orth010 / MS2-Rh001</span></div>
+          <h3>Station 4 · Septic Arthritis &amp; Rheumatoid Arthritis</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Septic arthritis</strong> — acute purulent joint infection, commonly <em>S. aureus</em> (gonococcus in young sexually active adults). Confirmed by joint aspirate: turbid fluid, WBC &gt;50,000/µL (mostly neutrophils), positive Gram stain/culture.</li>
+              <li><strong>Rheumatoid arthritis</strong> — chronic autoimmune, symmetric small-joint polyarthritis. Pathology: synovial hyperplasia (<strong>pannus</strong>) erodes cartilage and bone. Serology: RF (IgM anti-Fc of IgG) + anti-CCP (more specific).</li>
+            </ul>
+            <table class="mini-table">
+              <tr><th>Feature</th><th>Rheumatoid Arthritis</th><th>Osteoarthritis</th></tr>
+              <tr><td>Type</td><td>Autoimmune/inflammatory</td><td>Degenerative/mechanical</td></tr>
+              <tr><td>Joints</td><td>Small, symmetric (MCP/PIP)</td><td>Weight-bearing (knee, hip), DIP</td></tr>
+              <tr><td>Morning stiffness</td><td>&gt;1 hour</td><td>&lt;30 minutes</td></tr>
+              <tr><td>X-ray</td><td>Erosions, osteopenia, no osteophytes</td><td>Osteophytes, joint space narrowing</td></tr>
+            </table>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How is septic arthritis confirmed in the lab?<span class="arrow">▸</span></div><div class="qa-a"><p>Synovial fluid aspiration — Gram stain and culture, with WBC &gt;50,000/µL, PMN predominant.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What is pannus?<span class="arrow">▸</span></div><div class="qa-a"><p>Inflamed, hyperplastic synovium with granulation tissue that erodes articular cartilage and subchondral bone in RA.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--path); --tab-soft:var(--path-soft)">
+          <div class="stlabel"><span class="code">Scenario Station</span></div>
+          <h3>Station 5 · Duchenne Muscular Dystrophy, TB &amp; Urinalysis</h3>
+          <div class="body">
+            <ul>
+              <li><strong>DMD</strong> — X-linked recessive dystrophin-gene mutation. Child unable to climb stairs, uses hands to "walk up" own body from squatting (<strong>Gower's sign</strong>), calf pseudohypertrophy (fat/fibrous replacement of degenerated muscle), markedly raised CK.</li>
+              <li><strong>Tuberculosis</strong> — caseating granuloma: epithelioid histiocytes + Langhans giant cells around central caseous necrosis; confirmed by Ziehl-Neelsen acid-fast stain.</li>
+              <li><strong>Urinalysis</strong> — physical (colour, clarity), chemical/dipstick (protein, glucose, blood, leukocyte esterase, nitrites), microscopic (cells, casts, crystals). Culture medium: CLED agar (prevents Proteus swarming). Pyuria causes: UTI, renal TB, interstitial nephritis, appendicitis. Haematuria causes: stones, glomerulonephritis, malignancy, trauma, infection. Combined pyuria+haematuria: renal TB, infected stones, schistosomiasis, malignancy with secondary infection.</li>
+            </ul>
+            <div class="figure">
+              <svg viewBox="0 0 260 140" width="260" height="140">
+                <circle cx="130" cy="70" r="35" fill="#E8DEC6" stroke="#AD7A22" stroke-width="1.5"/>
+                <g fill="none" stroke="#167D6E" stroke-width="2">
+                  <ellipse cx="90" cy="45" rx="9" ry="6"/>
+                  <ellipse cx="170" cy="48" rx="9" ry="6"/>
+                  <ellipse cx="80" cy="95" rx="9" ry="6"/>
+                  <ellipse cx="175" cy="98" rx="9" ry="6"/>
+                  <ellipse cx="130" cy="30" rx="9" ry="6"/>
+                  <ellipse cx="130" cy="112" rx="9" ry="6"/>
+                </g>
+                <path d="M60 40 Q75 20 100 30" fill="none" stroke="#5B6156" stroke-width="1.5"/>
+                <path d="M200 45 Q185 20 160 30" fill="none" stroke="#5B6156" stroke-width="1.5"/>
+              </svg>
+              <figcaption>Caseating granuloma — central caseous necrosis (tan core) ringed by epithelioid histiocytes and Langhans giant cells (diagrammatic).</figcaption>
+            </div>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What causes calf pseudohypertrophy in DMD?<span class="arrow">▸</span></div><div class="qa-a"><p>Degenerated muscle fibres are replaced by fat and fibrous connective tissue, enlarging the calf despite weakness.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What is the hallmark microscopic feature of a TB granuloma?<span class="arrow">▸</span></div><div class="qa-a"><p>Central caseous (cheese-like) necrosis surrounded by epithelioid cells and Langhans-type multinucleated giant cells.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which culture medium is used for urine, and why?<span class="arrow">▸</span></div><div class="qa-a"><p>CLED agar — its electrolyte-deficient composition prevents swarming of Proteus while supporting most urinary pathogens.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--path); --tab-soft:var(--path-soft)">
+          <div class="stlabel"><span class="code">MS2-Pa-002 (contd.)</span></div>
+          <h3>Station 6 · Bone &amp; Soft-Tissue Lesions — Osteomyelitis, Osteosarcoma &amp; Hemangioma</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Acute osteomyelitis</strong> — neutrophilic infiltrate in bone/marrow, usually haematogenous spread of <em>S. aureus</em> in children (metaphysis of long bones).</li>
+              <li><strong>Chronic osteomyelitis</strong> — <strong>sequestrum</strong> (necrotic dead bone fragment) enclosed by an <strong>involucrum</strong> (surrounding shell of new reactive periosteal bone); may discharge via a sinus tract.</li>
+              <li><strong>Osteosarcoma (osteogenic sarcoma)</strong> — malignant osteoid-producing tumour, typically in the metaphysis of long bones around the knee in adolescents; X-ray shows a "sunburst" periosteal reaction and a <strong>Codman triangle</strong> where periosteum is lifted at the tumour margin.</li>
+              <li><strong>Hemangioma</strong> — benign vascular tumour (capillary or cavernous type); histology shows blood-filled vascular channels lined by bland endothelium.</li>
+            </ul>
+            <div class="fig-row">
+              <figure class="figure">
+                <svg viewBox="0 0 200 150" width="200" height="150">
+                  <rect x="70" y="10" width="60" height="130" rx="10" fill="#F3EEE1" stroke="#5B6156" stroke-width="2"/>
+                  <ellipse cx="100" cy="75" rx="16" ry="22" fill="#3a3a30"/>
+                  <path d="M60 40 Q45 75 60 110" fill="none" stroke="#167D6E" stroke-width="3"/>
+                  <path d="M140 40 Q155 75 140 110" fill="none" stroke="#167D6E" stroke-width="3"/>
+                </svg>
+                <figcaption>Chronic osteomyelitis — dark sequestrum (dead bone) enclosed by involucrum, new periosteal bone shell (diagrammatic).</figcaption>
+              </figure>
+              <figure class="figure">
+                <svg viewBox="0 0 200 150" width="200" height="150">
+                  <rect x="80" y="10" width="40" height="90" fill="#F3EEE1" stroke="#5B6156" stroke-width="2"/>
+                  <path d="M100 100 L100 140" stroke="#5B6156" stroke-width="2"/>
+                  <g stroke="#9B3B3B" stroke-width="2">
+                    <line x1="100" y1="100" x2="60" y2="70"/>
+                    <line x1="100" y1="95" x2="55" y2="90"/>
+                    <line x1="100" y1="88" x2="55" y2="110"/>
+                    <line x1="100" y1="100" x2="140" y2="70"/>
+                    <line x1="100" y1="95" x2="145" y2="90"/>
+                    <line x1="100" y1="88" x2="145" y2="110"/>
+                  </g>
+                  <path d="M78 100 L70 85 L80 82" fill="none" stroke="#AD7A22" stroke-width="2"/>
+                  <path d="M122 100 L130 85 L120 82" fill="none" stroke="#AD7A22" stroke-width="2"/>
+                </svg>
+                <figcaption>Osteosarcoma — "sunburst" spicules radiating from the cortex + Codman triangles at the margins (diagrammatic).</figcaption>
+              </figure>
+            </div>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Differentiate sequestrum from involucrum.<span class="arrow">▸</span></div><div class="qa-a"><p>Sequestrum is the necrotic dead bone fragment; involucrum is the surrounding shell of new, reactive periosteal bone that forms around it.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What is a Codman triangle, and what does it indicate?<span class="arrow">▸</span></div><div class="qa-a"><p>A triangular area of elevated periosteum at the margin of an aggressive bone lesion (classically osteosarcoma) — a radiological sign of rapid, aggressive growth.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- MICROBIOLOGY -->
+      <section class="section" id="microbiology">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">01b</span><h2>Microbiology &amp; Parasitology</h2></div>
+          <span class="section-marks" style="background:var(--micro)">examined within Pathology's 60</span>
+        </div>
+        <p class="section-note">Infectious Diseases (Module 17) territory — organism identification, culture media, serology, and parasitology.</p>
+
+        <div class="station" style="--tab:var(--micro); --tab-soft:var(--micro-soft)">
+          <div class="stlabel"><span class="code">ID-Pa-009</span></div>
+          <h3>Station 1 · Gram-Positive Cocci — Identification &amp; Differentiation</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Streptococcus pneumoniae</strong> — lancet-shaped gram-positive diplococcus, alpha-haemolytic, optochin-sensitive, bile-soluble.</li>
+              <li><strong>Staphylococcus aureus</strong> — gram-positive cocci in clusters, coagulase-positive, golden colonies, beta-haemolytic.</li>
+              <li><strong>Streptococcus classification</strong> — Lancefield groups (A = <em>S. pyogenes</em>, B = <em>S. agalactiae</em>) combined with haemolysis pattern (alpha = partial/green, beta = complete/clear, gamma = none).</li>
+              <li><strong>Group B strep confirmation</strong> — positive CAMP test (arrowhead-shaped enhanced haemolysis near a Staph streak) + positive hippurate hydrolysis.</li>
+            </ul>
+            <div class="figure">
+              <svg viewBox="0 0 220 130" width="220" height="130">
+                <g fill="#6A4C93" opacity="0.85">
+                  <circle cx="70" cy="55" r="9"/><circle cx="85" cy="48" r="9"/><circle cx="82" cy="65" r="9"/>
+                  <circle cx="100" cy="58" r="9"/><circle cx="95" cy="40" r="9"/>
+                  <circle cx="140" cy="70" r="9"/><circle cx="155" cy="65" r="9"/><circle cx="150" cy="82" r="9"/>
+                  <circle cx="165" cy="78" r="9"/><circle cx="135" cy="88" r="9"/>
+                </g>
+              </svg>
+              <figcaption>Gram-positive cocci in grape-like clusters (Staphylococcus) — stains purple/violet with crystal violet (diagrammatic).</figcaption>
+            </div>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What does optochin sensitivity distinguish?<span class="arrow">▸</span></div><div class="qa-a"><p>Optochin-sensitive = S. pneumoniae; optochin-resistant = viridans streptococci.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What does a positive coagulase test indicate?<span class="arrow">▸</span></div><div class="qa-a"><p>Staphylococcus aureus, differentiating it from coagulase-negative staphylococci (S. epidermidis, S. saprophyticus).</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--micro); --tab-soft:var(--micro-soft)">
+          <div class="stlabel"><span class="code">ID-Pa-001 / ID-Pa-011</span></div>
+          <h3>Station 2 · Gram-Negative Organisms &amp; Culture Media</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Vibrio cholerae</strong> — comma-shaped; grows as yellow colonies on <strong>TCBS agar</strong> (sucrose fermenter).</li>
+              <li><strong>Pseudomonas aeruginosa</strong> — blue-green pigment (pyocyanin), grape-like odour, oxidase-positive.</li>
+              <li><strong>Shigella</strong> → bacillary dysentery. <strong>Yersinia pestis</strong> → plague ("Black Death").</li>
+              <li><strong>Chocolate agar</strong> organisms — <em>Haemophilus influenzae</em> and <em>Neisseria</em> spp. (fastidious; need factors V &amp; X released by heat-lysed RBCs).</li>
+              <li><strong>Corynebacterium diphtheriae</strong> — club-shaped, shows metachromatic (Babes-Ernst) granules on Albert's/Loeffler's stain.</li>
+            </ul>
+            <div class="figure">
+              <svg viewBox="0 0 220 100" width="220" height="100">
+                <g fill="#C6485A" opacity="0.85">
+                  <rect x="40" y="30" width="26" height="8" rx="4"/>
+                  <rect x="75" y="55" width="26" height="8" rx="4" transform="rotate(20 88 59)"/>
+                  <rect x="110" y="25" width="26" height="8" rx="4" transform="rotate(-15 123 29)"/>
+                  <rect x="145" y="50" width="26" height="8" rx="4"/>
+                  <rect x="60" y="65" width="26" height="8" rx="4" transform="rotate(10 73 69)"/>
+                </g>
+              </svg>
+              <figcaption>Gram-negative bacilli — pink/red rod shapes (safranin counterstain), e.g. E. coli, Pseudomonas, Vibrio (diagrammatic).</figcaption>
+            </div>
+            <table class="mini-table">
+              <tr><th>Medium</th><th>Purpose</th></tr>
+              <tr><td>Blood agar</td><td>Haemolysis pattern (α/β/γ)</td></tr>
+              <tr><td>Chocolate agar</td><td>Fastidious organisms (H. influenzae, Neisseria)</td></tr>
+              <tr><td>Nutrient agar</td><td>General-purpose, non-selective growth</td></tr>
+              <tr><td>MacConkey agar</td><td>Lactose fermenters (pink) vs non-fermenters (pale)</td></tr>
+              <tr><td>TCBS agar</td><td>Vibrio spp. (yellow colonies — sucrose fermentation)</td></tr>
+              <tr><td>LJ medium</td><td>Mycobacterium tuberculosis (slow-growing, buff colonies)</td></tr>
+              <tr><td>CLED agar</td><td>Urine culture (prevents Proteus swarming)</td></tr>
+              <tr><td>TSI (Triple Sugar Iron)</td><td>Sugar fermentation pattern + H₂S production</td></tr>
+              <tr><td>Urease / Citrate</td><td>Biochemical differentiation of Enterobacteriaceae (e.g. Proteus urease-positive)</td></tr>
+              <tr><td>Blood culture bottles / anaerobic jar (GasPak)</td><td>Bacteraemia detection; growth of obligate anaerobes</td></tr>
+            </table>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which agar is used for cholera, and what colour do colonies appear?<span class="arrow">▸</span></div><div class="qa-a"><p>TCBS agar — Vibrio cholerae ferments sucrose, producing yellow colonies.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why does H. influenzae require chocolate agar rather than plain blood agar?<span class="arrow">▸</span></div><div class="qa-a"><p>Heating lyses the RBCs, releasing factor V (NAD) and factor X (haemin), both required for growth — these remain unavailable in unheated blood agar.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What does a positive urease test suggest?<span class="arrow">▸</span></div><div class="qa-a"><p>An organism such as Proteus, which hydrolyses urea to ammonia — relevant in UTI, where it alkalinises urine and predisposes to struvite stones.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--micro); --tab-soft:var(--micro-soft)">
+          <div class="stlabel"><span class="code">ID-Pa-010</span></div>
+          <h3>Station 3 · Culture Sensitivity Reports &amp; Antibiogram Interpretation</h3>
+          <div class="body">
+            <p>A disc-diffusion antibiogram reports each antibiotic as <strong>Sensitive (S)</strong>, <strong>Intermediate (I)</strong>, or <strong>Resistant (R)</strong>, based on the diameter of the clear zone of inhibition around each antibiotic disc compared to standard breakpoints.</p>
+            <ul>
+              <li>A wider zone of inhibition generally means the organism is more susceptible to that antibiotic.</li>
+              <li>The report guides <strong>de-escalation</strong> from broad-spectrum empirical therapy to a narrow-spectrum, sensitivity-guided antibiotic.</li>
+              <li>MRSA screening uses a cefoxitin disc as a surrogate marker for methicillin resistance.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What does a "resistant" report mean for a given antibiotic?<span class="arrow">▸</span></div><div class="qa-a"><p>The organism is able to grow despite clinically achievable concentrations of that drug — it should not be used to treat this infection.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--micro); --tab-soft:var(--micro-soft)">
+          <div class="stlabel"><span class="code">ID-Pa-002 / ID-Pa-012</span></div>
+          <h3>Station 4 · Parasitology — Protozoa, Helminths &amp; Cestodes</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Entamoeba histolytica</strong> — trophozoite (may contain ingested RBCs, diagnostic of invasive amoebiasis) vs quadrinucleate cyst (infective stage).</li>
+              <li><strong>Giardia lamblia</strong> — pear-shaped trophozoite with two nuclei ("old-man-face" appearance); oval cyst with up to 4 nuclei.</li>
+              <li><strong>Ascaris lumbricoides</strong> — faeco-oral transmission, adults reside in small intestine; thick mammillated (bumpy) egg shell; larval migration causes Loeffler's pneumonitis; heavy loads cause intestinal obstruction.</li>
+              <li><strong>Trichuris trichiura</strong> — barrel-shaped egg with bipolar plugs ("whipworm").</li>
+              <li><strong>Schistosoma egg</strong> — identified by characteristic lateral or terminal spine (species-dependent).</li>
+              <li><strong>Taenia solium / saginata</strong> — eggs are identical (striated shell with hexacanth embryo); species distinguished by scolex (hooks in T. solium) and proglottid morphology.</li>
+              <li><strong>Echinococcus granulosus</strong> — hydatid cyst with brood capsules and protoscolices bearing hooklets.</li>
+              <li><strong>Hymenolepis nana</strong> — oval egg with polar filaments between the embryo and outer shell.</li>
+              <li><strong>Plasmodium</strong> — intra-RBC ring forms on smear; causes anaemia via haemolysis.</li>
+              <li><strong>Tinea capitis</strong> — caused by <em>Microsporum</em> and <em>Trichophyton</em> species.</li>
+            </ul>
+            <div class="fig-row">
+              <figure class="figure">
+                <svg viewBox="0 0 160 110" width="160" height="110">
+                  <ellipse cx="80" cy="55" rx="40" ry="26" fill="#F3E7CC" stroke="#AD7A22" stroke-width="2"/>
+                  <g fill="none" stroke="#AD7A22" stroke-width="1.4">
+                    <path d="M45 45 q4 -6 8 0"/><path d="M55 38 q4 -6 8 0"/><path d="M67 34 q4 -6 8 0"/>
+                    <path d="M79 32 q4 -6 8 0"/><path d="M91 34 q4 -6 8 0"/><path d="M103 38 q4 -6 8 0"/>
+                    <path d="M113 45 q4 -6 8 0"/>
+                    <path d="M45 65 q4 6 8 0"/><path d="M55 72 q4 6 8 0"/><path d="M67 76 q4 6 8 0"/>
+                    <path d="M79 78 q4 6 8 0"/><path d="M91 76 q4 6 8 0"/><path d="M103 72 q4 6 8 0"/>
+                    <path d="M113 65 q4 6 8 0"/>
+                  </g>
+                </svg>
+                <figcaption>Ascaris lumbricoides egg — thick, mammillated (bumpy) shell (diagrammatic).</figcaption>
+              </figure>
+              <figure class="figure">
+                <svg viewBox="0 0 160 110" width="160" height="110">
+                  <path d="M80 20 Q110 25 112 55 Q110 85 80 90 Q50 85 48 55 Q50 25 80 20 Z" fill="#F3E7CC" stroke="#AD7A22" stroke-width="2"/>
+                  <ellipse cx="80" cy="16" rx="6" ry="4" fill="#AD7A22"/>
+                  <ellipse cx="80" cy="94" rx="6" ry="4" fill="#AD7A22"/>
+                </svg>
+                <figcaption>Trichuris trichiura egg — barrel/lemon shaped with clear bipolar plugs (diagrammatic).</figcaption>
+              </figure>
+              <figure class="figure">
+                <svg viewBox="0 0 160 110" width="160" height="110">
+                  <ellipse cx="75" cy="55" rx="35" ry="24" fill="#F3E7CC" stroke="#AD7A22" stroke-width="2"/>
+                  <line x1="108" y1="60" x2="140" y2="72" stroke="#AD7A22" stroke-width="3"/>
+                </svg>
+                <figcaption>Schistosoma egg — oval with a lateral spine (species-dependent) (diagrammatic).</figcaption>
+              </figure>
+            </div>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which egg has bipolar plugs?<span class="arrow">▸</span></div><div class="qa-a"><p>Trichuris trichiura — barrel-shaped with a translucent plug at each pole.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How do you distinguish Taenia solium from Taenia saginata eggs on stool microscopy?<span class="arrow">▸</span></div><div class="qa-a"><p>You can't — the eggs are morphologically identical; species is identified by the scolex (hooks present in T. solium, absent in T. saginata) or gravid proglottid uterine branching.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What complication can heavy Ascaris infestation in a child cause?<span class="arrow">▸</span></div><div class="qa-a"><p>Intestinal obstruction from a bolus of worms; also biliary/pancreatic duct obstruction if worms migrate.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--micro); --tab-soft:var(--micro-soft)">
+          <div class="stlabel"><span class="code">ID-Pa-007</span></div>
+          <h3>Station 5 · Sexually Transmitted Infections — Chlamydia &amp; Syphilis</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Chlamydia</strong> — obligate intracellular; biphasic life cycle: infectious extracellular <strong>elementary body</strong> → replicating intracellular <strong>reticulate body</strong>.</li>
+              <li><strong>Syphilis (Treponema pallidum)</strong> — primary (painless chancre) → secondary (rash, condyloma lata) → tertiary (gumma). <strong>Screening</strong>: VDRL/RPR (non-treponemal, cheap, false positives possible). <strong>Confirmatory</strong>: TPHA/TPPA/FTA-ABS (treponemal, specific).</li>
+              <li><strong>UTI</strong> — second most common cause: <em>Staphylococcus saprophyticus</em> (young, sexually active women).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which chlamydial form is infectious?<span class="arrow">▸</span></div><div class="qa-a"><p>The elementary body — metabolically inactive but capable of infecting new host cells.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Distinguish VDRL from TPHA.<span class="arrow">▸</span></div><div class="qa-a"><p>VDRL = non-treponemal screening test (can give false positives in autoimmune disease, pregnancy). TPHA = treponemal confirmatory test, specific for T. pallidum.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--micro); --tab-soft:var(--micro-soft)">
+          <div class="stlabel"><span class="code">ID-Pa-009 / ID-Pa-015</span></div>
+          <h3>Station 6 · Staining &amp; Rapid Identification Tests</h3>
+          <div class="body">
+            <p><strong>Gram stain steps:</strong> smear → heat fix → crystal violet (1 min) → iodine mordant (1 min) → decolourise with 95% alcohol → counterstain with safranin → examine.</p>
+            <p><strong>Ziehl-Neelsen (AFB) stain:</strong> carbol fuchsin with heat → decolourise with acid-alcohol → counterstain with methylene blue; acid-fast bacilli (Mycobacterium) retain the pink/red stain due to their mycolic-acid-rich cell wall.</p>
+            <table class="mini-table">
+              <tr><th>Test</th><th>Differentiates</th></tr>
+              <tr><td>Catalase</td><td>Staphylococcus (+, bubbles) vs Streptococcus (–)</td></tr>
+              <tr><td>Coagulase</td><td>S. aureus (+) vs coagulase-negative staph (–)</td></tr>
+              <tr><td>Oxidase</td><td>Pseudomonas/Neisseria/Vibrio (+) vs Enterobacteriaceae (–)</td></tr>
+            </table>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What does the catalase test detect?<span class="arrow">▸</span></div><div class="qa-a"><p>Presence of catalase enzyme, which breaks down H₂O₂ into water and oxygen (bubbles) — positive in Staphylococcus, negative in Streptococcus.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why do acid-fast bacilli resist decolourisation in ZN stain?<span class="arrow">▸</span></div><div class="qa-a"><p>Their cell wall is rich in mycolic acid (a waxy lipid), which binds carbol fuchsin tightly and resists the acid-alcohol decolouriser.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PHARMACOLOGY -->
+      <section class="section" id="pharmacology">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">02</span><h2>Pharmacology</h2></div>
+          <span class="section-marks" style="background:var(--pharm)">3×OSPE + 1×OSVE = 38 marks</span>
+        </div>
+        <p class="section-note">Prescription writing and drug dispensing, antimicrobials, anticancer pharmacology, NMJ blockers, NSAIDs and high-yield miscellaneous drugs.</p>
+
+        <div class="station" style="--tab:var(--pharm); --tab-soft:var(--pharm-soft)">
+          <div class="stlabel"><span class="code">ID-Ph-009</span></div>
+          <h3>Station 1 · Dispensing &amp; Prescription Writing</h3>
+          <div class="body">
+            <p>A prescription is a physician's legal written order to the pharmacist — written legibly, in ink.</p>
+            <table class="mini-table">
+              <tr><th>Part</th><th>Meaning</th></tr>
+              <tr><td>Superscription</td><td>The Rx symbol</td></tr>
+              <tr><td>Inscription</td><td>Name &amp; strength of the drug(s)</td></tr>
+              <tr><td>Subscription</td><td>Directions to the pharmacist (how to prepare/dispense)</td></tr>
+              <tr><td>Signatura (Transcription)</td><td>Directions to the patient — "sig."</td></tr>
+            </table>
+            <ul>
+              <li><strong>APC Powder</strong> — a classical antipyretic-analgesic combination of Aspirin, Phenacetin and Caffeine; phenacetin is largely avoided today (nephrotoxicity/haemolysis risk) and often substituted with paracetamol in modern practice.</li>
+              <li><strong>Carminative mixture</strong> — relieves flatulence and colicky abdominal pain; typically contains an antacid (e.g. sodium bicarbonate) plus aromatic oils (dill, ginger, peppermint) that relax GI smooth muscle and expel trapped gas.</li>
+              <li><strong>Conditions to practise prescription writing for:</strong> UTI (nitrofurantoin/fosfomycin), acute bacillary dysentery (ciprofloxacin/azithromycin), malaria (chloroquine or ACT depending on species/resistance), amoebiasis (metronidazole + a luminal agent e.g. diloxanide furoate), helminthic infections (albendazole/mebendazole), hepatitis B &amp; C (tenofovir/entecavir for B; direct-acting antivirals e.g. sofosbuvir for C), dengue (supportive care with paracetamol — avoid NSAIDs/aspirin due to bleeding risk), COVID-19 (supportive ± antivirals per severity), typhoid fever (ceftriaxone/azithromycin), community-acquired pneumonia (amoxicillin/azithromycin), and pulmonary TB (ATT — the RIPE regimen).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What is the Subscription part of a prescription?<span class="arrow">▸</span></div><div class="qa-a"><p>The pharmacist-directed instructions on how to compound/prepare and dispense the drug.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why should NSAIDs/aspirin be avoided in dengue fever?<span class="arrow">▸</span></div><div class="qa-a"><p>They increase bleeding risk in a disease already prone to thrombocytopenia and haemorrhage — paracetamol is preferred for fever/pain control.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why has phenacetin fallen out of use in APC powder?<span class="arrow">▸</span></div><div class="qa-a"><p>Long-term use is linked to analgesic nephropathy and haemolytic anaemia; paracetamol is used as a safer substitute.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--pharm); --tab-soft:var(--pharm-soft)">
+          <div class="stlabel"><span class="code">ID-Ph-001/003/007</span></div>
+          <h3>Station 2 · Antibiotics &amp; Antifungals</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Penicillin</strong> — inhibits transpeptidase (PBP), blocking peptidoglycan cross-linking (cell-wall synthesis inhibitor), bactericidal. Classes: natural (Pen G/V), antistaphylococcal (oxacillin), aminopenicillins (amoxicillin), antipseudomonal (piperacillin). <strong>β-lactamase inhibitors</strong> (clavulanic acid, sulbactam, tazobactam) protect penicillins from bacterial β-lactamases.</li>
+              <li><strong>Cephalosporins</strong> — 1st–5th generation; gram-negative coverage broadens with each generation; 5th generation (ceftaroline) covers MRSA.</li>
+              <li><strong>Erythromycin</strong> (macrolide) — atypical pneumonia, penicillin-allergic patients, chlamydia, pertussis.</li>
+              <li><strong>Rifampicin</strong> — 1st-line TB &amp; leprosy, meningococcal/H. influenzae prophylaxis; induces cytochrome P450; turns body fluids red-orange (harmless).</li>
+              <li><strong>Amphotericin B</strong> — polyene antifungal, binds ergosterol forming membrane pores; used for systemic mycoses. AE: nephrotoxicity, infusion-related "shake and bake" fever/chills, hypokalaemia.</li>
+              <li><strong>Antituberculosis therapy (RIPE)</strong> — Rifampicin, Isoniazid, Pyrazinamide, Ethambutol for 2 months intensive phase, then Rifampicin + Isoniazid for 4 months continuation phase (standard WHO-recommended regimen for new pulmonary TB).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why does rifampicin turn urine/tears red-orange, and is it dangerous?<span class="arrow">▸</span></div><div class="qa-a"><p>It is an expected, harmless pigment effect of the drug itself — patients should simply be reassured.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How do β-lactamase inhibitors work?<span class="arrow">▸</span></div><div class="qa-a"><p>They irreversibly bind and inactivate bacterial β-lactamase enzymes, protecting the co-administered penicillin from hydrolysis.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which anti-TB drug is most associated with optic neuritis?<span class="arrow">▸</span></div><div class="qa-a"><p>Ethambutol — monitor visual acuity and red-green colour discrimination.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--pharm); --tab-soft:var(--pharm-soft)">
+          <div class="stlabel"><span class="code">N-Ph-002</span></div>
+          <h3>Station 3 · Anticancer Pharmacology &amp; Biologics</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Log-kill hypothesis</strong> — each chemotherapy cycle kills a constant <em>fraction</em> (not fixed number) of tumour cells, hence the need for repeated cycles to eradicate disease.</li>
+              <li><strong>Resistance mechanisms</strong> — increased drug efflux (P-glycoprotein/MDR1), decreased uptake/activation, increased DNA repair, altered target enzyme, apoptosis evasion.</li>
+              <li><strong>Methotrexate</strong> — folate antagonist; inhibits dihydrofolate reductase (DHFR) → ↓ tetrahydrofolate → ↓ thymidylate &amp; purine synthesis → blocks S-phase (cell-cycle specific). Rescue agent: <strong>leucovorin (folinic acid)</strong>.</li>
+              <li><strong>TNF-α inhibitors</strong> — infliximab (chimeric mAb), adalimumab (fully human mAb), etanercept (TNF receptor–Fc fusion protein) — used in RA, ankylosing spondylitis, psoriasis, IBD.</li>
+              <li><strong>Glucocorticoids in cancer cocktails</strong> — used for their lympholytic effect (e.g. in CHOP regimen for lymphoma), for reducing peritumoural oedema (brain metastases), and as antiemetics alongside chemotherapy.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What rescues a patient from methotrexate toxicity?<span class="arrow">▸</span></div><div class="qa-a"><p>Leucovorin (folinic acid) — bypasses DHFR blockade, replenishing tetrahydrofolate for normal cells.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Name three TNF-α inhibitors.<span class="arrow">▸</span></div><div class="qa-a"><p>Infliximab, adalimumab, and etanercept.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--pharm); --tab-soft:var(--pharm-soft)">
+          <div class="stlabel"><span class="code">Autonomic / NMJ + NSAIDs</span></div>
+          <h3>Station 4 · Neuromuscular Blockers &amp; NSAIDs</h3>
+          <div class="body">
+            <ul>
+              <li><strong>NM blockers</strong> — Depolarizing (succinylcholine) vs Non-depolarizing/competitive (tubocurarine, atracurium, vecuronium, rocuronium).</li>
+              <li><strong>Succinylcholine</strong> — persistent depolarization of the motor end-plate → initial fasciculations then flaccid paralysis; ultra-short acting (hydrolysed by plasma pseudocholinesterase); used for rapid sequence intubation. AE: hyperkalaemia (dangerous in burns/trauma), malignant hyperthermia, prolonged apnoea in pseudocholinesterase deficiency.</li>
+              <li><strong>Frog rectus abdominis / animal-model practicals</strong> — atracurium (or another skeletal muscle relaxant) is applied in increasing concentrations to a frog rectus abdominis muscle preparation; the resulting dose-dependent contraction blockade is plotted on a graph, and reversal is demonstrated with neostigmine (an anticholinesterase) — illustrating competitive antagonism at the neuromuscular junction.</li>
+              <li><strong>NSAIDs</strong> — non-selective COX inhibitors (aspirin, ibuprofen, diclofenac) vs selective COX-2 inhibitors (celecoxib).</li>
+              <li><strong>Aspirin side effects</strong> — GI ulceration/bleeding, tinnitus (salicylism), Reye syndrome in children with viral illness, bleeding tendency (irreversible COX-1/platelet inhibition).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why is succinylcholine dangerous in a burns patient?<span class="arrow">▸</span></div><div class="qa-a"><p>Up-regulated extrajunctional ACh receptors cause massive potassium efflux on depolarization → life-threatening hyperkalaemia and cardiac arrest.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How does neostigmine reverse a non-depolarizing block on the frog rectus preparation?<span class="arrow">▸</span></div><div class="qa-a"><p>By inhibiting acetylcholinesterase, it raises synaptic acetylcholine levels, which out-competes the non-depolarizing blocker at the receptor.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why should aspirin be avoided in a febrile child with a viral infection?<span class="arrow">▸</span></div><div class="qa-a"><p>Risk of Reye syndrome — acute hepatic failure with encephalopathy.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--pharm); --tab-soft:var(--pharm-soft)">
+          <div class="stlabel"><span class="code">MS2-Ph-001/002/003</span></div>
+          <h3>Station 5 · Prescription Writing — RA, Gout &amp; OA + Miscellaneous Drugs</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Rheumatoid arthritis</strong> — NSAID/corticosteroid for symptom control + a DMARD (methotrexate first-line) started early to slow joint destruction; biologics (TNF-α inhibitors) added if inadequate response.</li>
+              <li><strong>Acute gout</strong> — NSAID (e.g. indomethacin) or colchicine (if NSAID contraindicated) or a short corticosteroid course; <strong>never</strong> start allopurinol during an acute attack (can prolong/worsen it).</li>
+              <li><strong>Chronic gout</strong> — xanthine oxidase inhibitor (allopurinol) or a uricosuric agent, started once the acute attack has settled.</li>
+              <li><strong>Osteoarthritis</strong> — paracetamol first-line, topical/oral NSAIDs for flares, plus non-pharmacological measures (weight loss, physiotherapy).</li>
+              <li><strong>Bisphosphonates</strong> (e.g. alendronate) — inhibit osteoclast-mediated bone resorption; used in osteoporosis, Paget's disease, hypercalcaemia of malignancy, bone metastases.</li>
+              <li><strong>Ringer Lactate</strong> — contains Na⁺, K⁺, Ca²⁺, Cl⁻ and lactate (converted to bicarbonate by the liver); infused via standard IV giving sets (macro-drip 20 drops/mL, micro-drip 60 drops/mL).</li>
+              <li><strong>Albendazole</strong> — broad-spectrum anthelmintic; inhibits parasite β-tubulin polymerization → ↓ glucose uptake; used for ascariasis, hookworm, hydatid disease, neurocysticercosis.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Why shouldn't allopurinol be started during an acute gout attack?<span class="arrow">▸</span></div><div class="qa-a"><p>Sudden changes in serum urate can mobilise crystals and prolong/worsen the acute flare — it should be started only after the attack has settled.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What is the mechanism of albendazole?<span class="arrow">▸</span></div><div class="qa-a"><p>It inhibits microtubule (β-tubulin) polymerization in the parasite, impairing glucose uptake and killing the organism.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FORENSIC -->
+      <section class="section" id="forensic">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">03</span><h2>Forensic Medicine</h2></div>
+          <span class="section-marks" style="background:var(--forensic)">1×OSPE (examined) = 08 marks</span>
+        </div>
+        <p class="section-note">Only one 8-mark OSPE station is drawn from this subject in the actual exam — but the full practicals list is covered below so nothing on the syllabus is left unrevised.</p>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">Traumatology · Likely tested</span></div>
+          <h3>Station 1 · Coup &amp; Contrecoup Haemorrhage</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Coup injury</strong> — brain injury directly beneath the point of impact; typical of a stationary head struck by a moving object.</li>
+              <li><strong>Contrecoup injury</strong> — injury on the side opposite the impact; typical of a moving head striking a stationary object, due to the brain's inertial lag and cavitation on the far side.</li>
+            </ul>
+            <div class="figure">
+              <svg viewBox="0 0 260 130" width="260" height="130">
+                <ellipse cx="130" cy="65" rx="90" ry="50" fill="#F3EEE1" stroke="#5B6156" stroke-width="2"/>
+                <ellipse cx="130" cy="65" rx="70" ry="35" fill="none" stroke="#5B6156" stroke-width="1.2" stroke-dasharray="3 3"/>
+                <circle cx="65" cy="65" r="12" fill="#9B3B3B" opacity="0.5"/>
+                <circle cx="195" cy="65" r="12" fill="#9B3B3B" opacity="0.85"/>
+                <line x1="10" y1="65" x2="55" y2="65" stroke="#9B3B3B" stroke-width="3" marker-end="url(#arrow)"/>
+                <text x="30" y="55" font-size="10" fill="#5B6156" font-family="IBM Plex Mono, monospace">impact</text>
+                <text x="45" y="95" font-size="9" fill="#5B6156" font-family="IBM Plex Mono, monospace">coup</text>
+                <text x="175" y="95" font-size="9" fill="#5B6156" font-family="IBM Plex Mono, monospace">contrecoup</text>
+              </svg>
+              <figcaption>Coup injury (near impact) vs contrecoup injury (opposite side) — schematic side view of the brain (diagrammatic).</figcaption>
+            </div>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>A moving head strikes a stationary wall — where is the brain injury expected?<span class="arrow">▸</span></div><div class="qa-a"><p>Contrecoup — on the side opposite the point of contact.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">Asphyxia · Likely tested</span></div>
+          <h3>Station 2 · Asphyxial Deaths — Suffocation, Hanging, Choking</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Smothering</strong> — external blockage of mouth/nose. <strong>Gagging</strong> — foreign material forced into the mouth/pharynx. <strong>Choking</strong> — internal airway obstruction by a foreign body.</li>
+              <li><strong>Hanging</strong> — ligature + the body's own weight provides the constricting force; ligature mark is typically oblique, non-continuous, above the thyroid cartilage.</li>
+              <li><strong>Strangulation</strong> — external force (not body weight) constricts the neck; mark is usually horizontal and continuous, at or below the thyroid cartilage.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Differentiate the ligature mark of hanging from strangulation.<span class="arrow">▸</span></div><div class="qa-a"><p>Hanging: oblique, non-continuous, above the thyroid cartilage. Strangulation: horizontal, continuous, at/below the thyroid cartilage.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">Drowning · Likely tested</span></div>
+          <h3>Station 3 · Drowning — Mechanism &amp; Froth</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Mechanism</strong> — laryngospasm → hypoxia; <strong>wet drowning</strong> (water enters lungs) is far more common than <strong>dry drowning</strong> (~10–15%, persistent laryngospasm with little aspirated water).</li>
+              <li><strong>Froth</strong> — fine, white, lathery froth at the mouth/nostrils, produced by air, water, mucus and surfactant churned by continued respiratory efforts — a classic external finding.</li>
+              <li><strong>Freshwater vs saltwater</strong> — freshwater (hypotonic) causes haemodilution/haemolysis/hyperkalaemia; saltwater (hypertonic) causes pulmonary oedema/haemoconcentration (classic teaching distinction).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What produces the froth seen at the mouth/nose in drowning?<span class="arrow">▸</span></div><div class="qa-a"><p>Air, water, mucus and pulmonary surfactant, agitated together by continuing respiratory movements.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">Bite marks &amp; Snake bite · Likely tested</span></div>
+          <h3>Station 4 · Human Bite Mark &amp; Snake Bite First Aid</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Human bite mark</strong> — oval/crescentic pattern of bruising/abrasion; compared against a suspect's dental cast; saliva in the mark yields DNA for identification.</li>
+              <li><strong>Snake bite first aid</strong> — immobilise the limb like a splinted fracture, keep at/below heart level, remove constrictive jewellery/clothing, do <strong>not</strong> cut, suck, apply ice, or a tight tourniquet; transport promptly for antivenom.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>List two things you must never do after a snake bite.<span class="arrow">▸</span></div><div class="qa-a"><p>Never cut/incise the wound or apply a tight tourniquet — both increase local tissue damage without limiting systemic venom spread.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">For2-Tr-028 · Practical reference</span></div>
+          <h3>Station 5 · Weapon Identification</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Blunt weapons</strong> (lathi, axe handle, stick) — produce contusions, abrasions, and lacerations (irregular margins, tissue bridging).</li>
+              <li><strong>Sharp weapons</strong> (knife, dagger, razor, sickle, gandasa) — produce clean incised wounds or stab wounds with sharp margins and no tissue bridging.</li>
+              <li><strong>Firearms</strong> — produce characteristic entry/exit wound patterns (see Station 8).</li>
+              <li><strong>Electrical instruments &amp; chemicals</strong> — produce Joule burns and corrosive injury respectively, each with their own medico-legal significance.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How does a lacerated wound from a blunt weapon differ from a knife's incised wound?<span class="arrow">▸</span></div><div class="qa-a"><p>Laceration: irregular, ragged margins with tissue bridging (tissue strands crossing the wound). Incised wound: clean, sharp margins with no tissue bridging.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">For2-Tr-029/030/031 · Practical reference</span></div>
+          <h3>Station 6 · Abrasions, Bruise Ageing &amp; Laceration vs Incised Wound</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Types of abrasion</strong> — scratch (linear, nail/thorn), graze (tangential friction, e.g. road-surface skin scraping), pressure abrasion (crushing, patterned to the object), patterned abrasion (reproduces the shape of the causative object, e.g. tyre marks).</li>
+              <li><strong>Bruise ageing by colour change</strong> — red/blue initially → green (day 3-5) → yellow (day 5-7) → resolves (~2 weeks), due to sequential haemoglobin breakdown to bilirubin/haemosiderin.</li>
+              <li><strong>Bruise vs postmortem staining (hypostasis)</strong> — a true bruise shows tissue infiltration by blood, doesn't shift with position, and can occur anywhere; hypostasis is a fixed, dependent-part discolouration that blanches on pressure early after death and shifts if the body is repositioned before it fixes.</li>
+              <li><strong>Laceration vs incised wound</strong> — laceration (blunt force): irregular margins, tissue bridging, bruising around the edges. Incised wound (sharp weapon): clean margins, no tissue bridging, minimal surrounding bruising.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How would you age a bruise from its colour alone?<span class="arrow">▸</span></div><div class="qa-a"><p>Fresh bruises are red/blue; they turn green around day 3-5, yellow around day 5-7, and typically resolve by ~2 weeks — reflecting progressive haemoglobin breakdown.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What is "tissue bridging" and which wound type shows it?<span class="arrow">▸</span></div><div class="qa-a"><p>Fine strands of connective tissue/vessels crossing the depth of a wound, resisting complete separation — seen in lacerations (blunt trauma), not in incised wounds (sharp weapons).</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">For2-Tr-032/033/034 · Practical reference</span></div>
+          <h3>Station 7 · Fractures on X-ray, Qisas &amp; Diyat Act, Injury Certification</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Fracture types on X-ray</strong> — simple (closed, no skin break), compound (open, communicating with skin surface), comminuted (multiple fragments), greenstick (incomplete, bends on one side — typically in children).</li>
+              <li><strong>Qisas &amp; Diyat Act (Pakistan Penal Code) — hurt classification:</strong>
+                <ul>
+                  <li><em>Itlaf-i-udw</em> — destruction/dismemberment of a limb or organ.</li>
+                  <li><em>Itlaf-i-salahiyyat-i-udw</em> — permanent loss of function of an organ without physical severance.</li>
+                  <li><em>Shajjah</em> — a wound to the head or face, with further subtypes based on depth (up to the bone, fracturing the bone, etc.).</li>
+                  <li><em>Jurh</em> — a wound to any part of the body other than the head/face (termed <em>Jaifah</em> if it penetrates a body cavity).</li>
+                </ul>
+              </li>
+              <li><strong>Certification of injury</strong> — a medico-legal report documents identification details, history, examination findings, and an opinion on the nature, age, probable weapon, and severity of the injury (whether it amounts to "hurt" under law); it is prepared for and may be requested by the police/court.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>A patient loses function of a hand after a crush injury but the hand is not amputated. Which category applies?<span class="arrow">▸</span></div><div class="qa-a"><p>Itlaf-i-salahiyyat-i-udw — loss of function of the organ without its physical destruction/severance.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What term applies to a wound on the face that fractures the underlying bone?<span class="arrow">▸</span></div><div class="qa-a"><p>Shajjah — specifically, a subtype involving bone fracture (as opposed to a wound reaching only skin/soft tissue).</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">For2-Tr-035 · Practical reference</span></div>
+          <h3>Station 8 · Firearms &amp; Ballistics</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Internal ballistics</strong> — the mechanics of firing within the weapon (barrel, chamber, trigger, ammunition components: bullet, cartridge case, propellant, primer).</li>
+              <li><strong>External ballistics</strong> — factors affecting the bullet's trajectory after leaving the muzzle (gravity, air resistance, wind).</li>
+              <li><strong>Terminal ballistics</strong> — the wound produced on impact:
+                <ul>
+                  <li><strong>Entry wound</strong> — typically smaller, with inverted (inward) margins and often an abrasion collar.</li>
+                  <li><strong>Exit wound</strong> — typically larger, with everted (outward) margins and no abrasion collar.</li>
+                </ul>
+              </li>
+              <li><strong>Firing range estimation</strong> — presence of tattooing (embedded unburnt powder grains) and scorching/muzzle imprint suggests close/near-contact range; their absence suggests a distant shot.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How do you distinguish an entry from an exit gunshot wound?<span class="arrow">▸</span></div><div class="qa-a"><p>Entry wounds are usually smaller with inverted margins and an abrasion collar; exit wounds are usually larger with everted margins and no abrasion collar.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">For2-Tr-036/037 · Practical reference</span></div>
+          <h3>Station 9 · Burns &amp; Electrocution</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Burns</strong> — classified as flame burn (dry) or scald (wet, from hot liquid/steam); graded 1st (epidermis only) to 4th degree (down to bone); % body surface area estimated using the "rule of nines".</li>
+              <li><strong>Ante-mortem vs postmortem burns</strong> — ante-mortem burns show a vital reaction (redness, blistering with fluid, inflammatory response); postmortem burns lack this vital reaction.</li>
+              <li><strong>Electrocution</strong> — produces a characteristic "Joule burn" (a firm, blackened, crater-like mark) at the entry point; pattern and severity depend on voltage (low vs high) and the pathway of current through the body (current crossing the heart is most dangerous).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>How do you tell an ante-mortem burn from a postmortem burn?<span class="arrow">▸</span></div><div class="qa-a"><p>Ante-mortem burns show a vital reaction — redness, fluid-filled blisters, and an inflammatory response — which is absent in a postmortem burn.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">For2-Tr-038/039 · Practical reference</span></div>
+          <h3>Station 10 · Thermal Extremes, Starvation &amp; Chemical Burns</h3>
+          <div class="body">
+            <ul>
+              <li><strong>High environmental temperature</strong> — heat cramps (mild, muscle cramps with normal temperature), heat exhaustion (weakness, dehydration), heat stroke (life-threatening, core temperature &gt;40°C with CNS dysfunction).</li>
+              <li><strong>Low environmental temperature</strong> — frostbite (localised tissue freezing), trench foot / immersion foot (prolonged wet cold exposure without freezing).</li>
+              <li><strong>Starvation</strong> — autopsy findings include an empty gastrointestinal tract, loss of subcutaneous fat, and atrophy of internal organs.</li>
+              <li><strong>Chemical burns</strong> — caused by corrosive acids/alkalis; autopsy shows corrosion marks tracking along the path of contact/ingestion (lips, mouth, oesophagus, stomach); classified under the Qisas and Diyat Act similarly to thermal burns based on severity/effect.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What autopsy findings suggest death from starvation?<span class="arrow">▸</span></div><div class="qa-a"><p>An empty GI tract, marked loss of subcutaneous fat, and atrophy of internal organs.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--forensic); --tab-soft:var(--forensic-soft)">
+          <div class="stlabel"><span class="code">For2-Se-008 · Reference only, not examined</span></div>
+          <h3>Station 11 · Sexology — Medico-Legal Examination (Practical Reference)</h3>
+          <div class="body">
+            <p>Included here for completeness of the syllabus practicals list, though it is not part of the single examined Forensic OSPE station this block. The medico-legal examination of an alleged rape accused/victim requires a structured proforma (identification, history, general and genital examination, injuries noted), with strict chain-of-custody for collection, preservation, labelling and dispatch of specimens (swabs, clothing) to the chemical examiner, following consent and confidentiality protocols.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- MEDICINE -->
+      <section class="section" id="medicine">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">04</span><h2>Medicine</h2></div>
+          <span class="section-marks" style="background:var(--medicine)">1×OSPE = 08 marks</span>
+        </div>
+        <p class="section-note">History-taking for fever, rheumatology examination, and cardiovascular auscultation.</p>
+
+        <div class="station" style="--tab:var(--medicine); --tab-soft:var(--medicine-soft)">
+          <div class="stlabel"><span class="code">History Taking</span></div>
+          <h3>Station 1 · Fever (± Headache) — History &amp; Investigations</h3>
+          <div class="body">
+            <ul>
+              <li><strong>History</strong> — onset, duration, pattern (continuous/intermittent/remittent), chills/rigors, headache, rash, joint pains, cough, urinary symptoms, travel/contact/vaccination history.</li>
+              <li><strong>Examination</strong> — look for a focus: throat, chest, abdomen, skin, joints.</li>
+              <li><strong>Investigations</strong> — CBC, blood culture, urine R/E, malarial parasite (ICT/smear), typhoid serology, CRP/ESR, chest X-ray.</li>
+              <li><strong>Fever + headache</strong> specifically raises meningitis/encephalitis on the differential — ask about neck stiffness, photophobia, altered consciousness, and examine for meningeal signs (Kernig's, Brudzinski's) before considering lumbar puncture.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Name three key investigations in a patient with prolonged fever.<span class="arrow">▸</span></div><div class="qa-a"><p>CBC with differential, blood culture, and malarial parasite/ICT test — supplemented by CRP/ESR and urine R/E.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What two meningeal signs would you check for in fever with headache?<span class="arrow">▸</span></div><div class="qa-a"><p>Kernig's sign and Brudzinski's sign.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--medicine); --tab-soft:var(--medicine-soft)">
+          <div class="stlabel"><span class="code">Rheumatology Exam</span></div>
+          <h3>Station 2 · Hand Examination, RA vs OA &amp; SLE Scenario</h3>
+          <div class="body">
+            <ul>
+              <li><strong>RA hand exam</strong> — symmetric MCP/PIP swelling, ulnar deviation, swan-neck/boutonnière deformities, rheumatoid nodules.</li>
+              <li><strong>Joint swelling history</strong> — onset (acute vs chronic), pattern (mono/oligo/polyarticular), symmetry, migratory vs additive, associated systemic features (rash, fever, eye symptoms).</li>
+              <li><strong>SLE scenario</strong> (young woman, small-joint arthritis + malar rash) — focused history should probe photosensitivity, oral ulcers, hair loss, frothy urine (renal), chest pain (serositis), Raynaud's, neuropsychiatric symptoms. Investigations: ANA (sensitive), anti-dsDNA/anti-Sm (specific), complement levels (low C3/C4 in active disease).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which antibody is most specific for SLE?<span class="arrow">▸</span></div><div class="qa-a"><p>Anti-dsDNA (and anti-Sm) — ANA is sensitive but not specific.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What complement pattern is expected in active SLE?<span class="arrow">▸</span></div><div class="qa-a"><p>Low C3 and C4 — consumed by immune complex formation and activation of the complement cascade.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--medicine); --tab-soft:var(--medicine-soft)">
+          <div class="stlabel"><span class="code">CVS Exam</span></div>
+          <h3>Station 3 · Heart Auscultation</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Areas</strong> — mitral (apex), tricuspid (left lower sternal border), pulmonary (2nd left intercostal space), aortic (2nd right intercostal space).</li>
+              <li><strong>Sequence</strong> — inspection → palpation → percussion → auscultation.</li>
+              <li>Use the diaphragm for high-pitched sounds, the bell for low-pitched sounds (e.g. the mitral stenosis rumble).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Where is the mitral area auscultated?<span class="arrow">▸</span></div><div class="qa-a"><p>The cardiac apex, typically the 5th left intercostal space, mid-clavicular line.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SURGERY -->
+      <section class="section" id="surgery">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">05</span><h2>Surgery</h2></div>
+          <span class="section-marks" style="background:var(--surgery)">1×OSPE = 08 marks</span>
+        </div>
+        <p class="section-note">Trauma primary survey, Glasgow Coma Scale, airway devices, MSK imaging modalities and joint examination.</p>
+
+        <div class="station" style="--tab:var(--surgery); --tab-soft:var(--surgery-soft)">
+          <div class="stlabel"><span class="code">MS2-Orth013</span></div>
+          <h3>Station 1 · Primary Survey (ATLS) &amp; Glasgow Coma Scale</h3>
+          <div class="body">
+            <table class="mini-table">
+              <tr><th>Letter</th><th>Step</th></tr>
+              <tr><td>A</td><td>Airway with C-spine control</td></tr>
+              <tr><td>B</td><td>Breathing</td></tr>
+              <tr><td>C</td><td>Circulation with haemorrhage control</td></tr>
+              <tr><td>D</td><td>Disability (GCS, pupils)</td></tr>
+              <tr><td>E</td><td>Exposure with environmental control</td></tr>
+            </table>
+            <p><strong>GCS</strong> = Eye (4) + Verbal (5) + Motor (6) = 15 max. Score ≤8 = severe injury, warrants airway protection/intubation.</p>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>A trauma patient scores E2V2M4 — total, and what does it mean?<span class="arrow">▸</span></div><div class="qa-a"><p>Total = 8 — severe head injury, requiring airway protection.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--surgery); --tab-soft:var(--surgery-soft)">
+          <div class="stlabel"><span class="code">Airway &amp; Radiograph</span></div>
+          <h3>Station 2 · Airway Devices, Radiograph &amp; Elbow Palpation</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Endotracheal tube</strong> — definitive airway, cuffed, secures against aspiration.</li>
+              <li><strong>Oropharyngeal (Guedel) airway</strong> — temporary airway adjunct in an unconscious patient without a gag reflex; sized from the corner of the mouth to the angle of the jaw.</li>
+              <li><strong>Elbow palpation</strong> — medial epicondyle, lateral epicondyle, and olecranon form an equilateral triangle when the elbow is flexed 90°; this relationship is disrupted in a posterior dislocation but preserved in a supracondylar fracture.</li>
+            </ul>
+            <div class="figure">
+              <svg viewBox="0 0 200 160" width="200" height="160">
+                <circle cx="70" cy="50" r="8" fill="#2E5C8A"/>
+                <circle cx="130" cy="50" r="8" fill="#2E5C8A"/>
+                <circle cx="100" cy="120" r="8" fill="#2E5C8A"/>
+                <line x1="70" y1="50" x2="130" y2="50" stroke="#5B6156" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <line x1="70" y1="50" x2="100" y2="120" stroke="#5B6156" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <line x1="130" y1="50" x2="100" y2="120" stroke="#5B6156" stroke-width="1.5" stroke-dasharray="4 3"/>
+                <text x="45" y="40" font-size="10" fill="#5B6156" font-family="IBM Plex Mono, monospace">ME</text>
+                <text x="135" y="40" font-size="10" fill="#5B6156" font-family="IBM Plex Mono, monospace">LE</text>
+                <text x="95" y="140" font-size="10" fill="#5B6156" font-family="IBM Plex Mono, monospace">Olecranon</text>
+              </svg>
+              <figcaption>Bony triangle of the flexed elbow (medial epicondyle · lateral epicondyle · olecranon) — diagrammatic.</figcaption>
+            </div>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What bony landmarks form the elbow's triangle, and when is it disrupted?<span class="arrow">▸</span></div><div class="qa-a"><p>Medial epicondyle, lateral epicondyle, and olecranon — the triangle relationship is disrupted in posterior elbow dislocation but preserved in a supracondylar fracture.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--surgery); --tab-soft:var(--surgery-soft)">
+          <div class="stlabel"><span class="code">MS2-Ra-001</span></div>
+          <h3>Station 3 · Imaging Modalities in MSK Disorders</h3>
+          <div class="body">
+            <table class="mini-table">
+              <tr><th>Modality</th><th>Best used for</th></tr>
+              <tr><td>X-ray</td><td>First-line for fractures, bone tumours, joint space assessment</td></tr>
+              <tr><td>CT scan</td><td>Complex fractures, pre-operative planning, fine bony detail</td></tr>
+              <tr><td>Ultrasound</td><td>Soft tissue, tendons, joint effusions, guided aspiration/injection</td></tr>
+              <tr><td>Bone scan (scintigraphy)</td><td>Occult fracture, early osteomyelitis, bone metastases — shows increased uptake on all three phases in acute osteomyelitis</td></tr>
+            </table>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>Which imaging modality best detects an occult (X-ray negative) fracture?<span class="arrow">▸</span></div><div class="qa-a"><p>A bone scan (or MRI where available) — both are more sensitive than plain X-ray for occult fractures.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CFRC -->
+      <section class="section" id="cfrc">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">06</span><h2>CFRC</h2></div>
+          <span class="section-marks" style="background:var(--cfrc)">1×OSPE = 08 marks</span>
+        </div>
+        <p class="section-note">Clinical Foundation &amp; Reasoning — focused history-taking stations.</p>
+
+        <div class="station" style="--tab:var(--cfrc); --tab-soft:var(--cfrc-soft)">
+          <div class="stlabel"><span class="code">Surgical History</span></div>
+          <h3>Station 1 · Left Upper Quadrant Pain with Vomiting</h3>
+          <div class="body">
+            <p>Differentials: splenic pathology (infarct/rupture), gastritis/peptic ulcer, pancreatitis, splenic flexure syndrome. Use SOCRATES for pain characterisation, plus associated symptoms, red flags (fever, weight loss, GI bleed), and relevant past history.</p>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What mnemonic structures pain history-taking?<span class="arrow">▸</span></div><div class="qa-a"><p>SOCRATES — Site, Onset, Character, Radiation, Associated symptoms, Timing, Exacerbating/relieving factors, Severity.</p></div></div>
+          </div>
+        </div>
+
+        <div class="station" style="--tab:var(--cfrc); --tab-soft:var(--cfrc-soft)">
+          <div class="stlabel"><span class="code">Respiratory/Cardiac History</span></div>
+          <h3>Station 2 · Dyspnoea &amp; Chest Pain History</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Dyspnoea</strong> — onset (acute/chronic), exertional vs at-rest, orthopnoea/PND, associated chest pain/palpitations/cough — helps distinguish cardiac from respiratory causes.</li>
+              <li><strong>Chest pain</strong> — SOCRATES + cardiac risk factors (smoking, diabetes, hypertension, family history) + red flags (radiation to arm/jaw, sweating, breathlessness).</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>What history finding suggests a cardiac cause for dyspnoea?<span class="arrow">▸</span></div><div class="qa-a"><p>Orthopnoea and paroxysmal nocturnal dyspnoea (PND), often with ankle swelling and exertional chest tightness.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- PERLs -->
+      <section class="section" id="perls">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">07</span><h2>PERLs + ExposITory</h2></div>
+          <span class="section-marks" style="background:var(--perls)">1×OSCE = 10 marks</span>
+        </div>
+        <p class="section-note">Professionalism, Ethics, Leadership &amp; Communication Skills — one 10-mark OSCE station.</p>
+
+        <div class="station" style="--tab:var(--perls); --tab-soft:var(--perls-soft)">
+          <div class="stlabel"><span class="code">Scenario</span></div>
+          <h3>Station 1 · Counselling &amp; Ethical Scenarios</h3>
+          <div class="body">
+            <ul>
+              <li><strong>Ovarian cyst counselling</strong> — explain the diagnosis in simple language, why surgery is being recommended, risks and benefits, address the patient's fears empathetically, and obtain informed consent.</li>
+              <li><strong>Pharmaceutical company offer</strong> — decline personal gifts that could bias prescribing; prescribing decisions must rest solely on the patient's best interest and evidence, not incentives.</li>
+              <li><strong>Terminal patient communication</strong> — breaking bad news with empathy and honesty (SPIKES-type approach), involve family appropriately while respecting patient autonomy, discuss palliative care options, avoid false reassurance.</li>
+            </ul>
+          </div>
+          <div class="qa">
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>A pharma rep offers you a gift for prescribing their drug. Correct action?<span class="arrow">▸</span></div><div class="qa-a"><p>Decline — accepting creates a conflict of interest. Prescribing must be guided by the patient's best interest and clinical evidence alone.</p></div></div>
+            <div class="qa-item"><div class="qa-q"><span class="qmark">Q</span>A terminal patient's family asks you to withhold the diagnosis. How do you respond?<span class="arrow">▸</span></div><div class="qa-a"><p>Respect the patient's own autonomy first — sensitively explore what the patient themselves wishes to know, while acknowledging the family's concerns, rather than automatically complying with their request.</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIVA BANK -->
+      <section class="section vivabank" id="vivabank">
+        <div class="section-head">
+          <div class="titlewrap"><span class="idx">08</span><h2>Viva Bank — Scenario Drills</h2></div>
+          <span class="section-marks" style="background:var(--ink)">OSVE-style</span>
+        </div>
+        <p class="section-note">Extra scenario-based questions, grouped by subject, in the same multi-part clinical-vignette style used in the real OSVE stations. Tap any sub-question to reveal the answer.</p>
+
+        <div class="vgroup" data-group="path">
+          <div class="vgroup-head"><span class="dot-lg" style="background:var(--path)"></span><h3>Pathology &amp; Microbiology</h3><span>10 scenarios</span></div>
+
+          <div class="vscenario"><p class="scenario-text">A 55-year-old smoker presents with persistent cough and weight loss. CXR shows a hilar mass; biopsy shows keratin pearls and intercellular bridges.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Squamous cell carcinoma of the lung.</div></div>
+            <div class="subq"><div class="qline"><span>b) Major risk factor?</span><span class="arrow">▸</span></div><div class="ans">Cigarette smoking.</div></div>
+            <div class="subq"><div class="qline"><span>c) Associated paraneoplastic syndrome?</span><span class="arrow">▸</span></div><div class="ans">Hypercalcaemia — tumour secretes PTH-related peptide (PTHrP).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A 10-year-old boy has a limping, waddling gait and cannot climb stairs without using his hands to push off his thighs. Serum CK is markedly raised.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Duchenne muscular dystrophy.</div></div>
+            <div class="subq"><div class="qline"><span>b) Inheritance pattern?</span><span class="arrow">▸</span></div><div class="ans">X-linked recessive (dystrophin gene mutation).</div></div>
+            <div class="subq"><div class="qline"><span>c) Confirmatory test?</span><span class="arrow">▸</span></div><div class="ans">Muscle biopsy with dystrophin immunostaining (absent), or genetic testing for dystrophin gene deletion.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A child presents with acute knee pain, fever, and refusal to bear weight. Joint aspirate: turbid fluid, WBC 60,000/µL, predominantly neutrophils.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Septic arthritis.</div></div>
+            <div class="subq"><div class="qline"><span>b) Most likely organism in this age group?</span><span class="arrow">▸</span></div><div class="ans">Staphylococcus aureus (consider Kingella kingae in children under 5).</div></div>
+            <div class="subq"><div class="qline"><span>c) Immediate management?</span><span class="arrow">▸</span></div><div class="ans">IV antistaphylococcal antibiotic plus urgent joint aspiration/surgical drainage.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A 45-year-old woman has symmetric pain and swelling of both hands, morning stiffness lasting over an hour, positive RF and anti-CCP.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Rheumatoid arthritis.</div></div>
+            <div class="subq"><div class="qline"><span>b) Expected radiographic finding?</span><span class="arrow">▸</span></div><div class="ans">Juxta-articular osteopenia, joint space narrowing, marginal erosions — no osteophytes (unlike OA).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient has chronic cough, night sweats, and weight loss. CXR shows an upper-lobe cavity; sputum is AFB positive.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Pulmonary tuberculosis.</div></div>
+            <div class="subq"><div class="qline"><span>b) Histology of the granuloma?</span><span class="arrow">▸</span></div><div class="ans">Caseating granuloma — epithelioid cells, Langhans giant cells, central caseous necrosis.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A urine culture on CLED agar grows non-lactose-fermenting, oxidase-negative, motile colonies that are H₂S positive on TSI.</p>
+            <div class="subq"><div class="qline"><span>a) Likely organism family?</span><span class="arrow">▸</span></div><div class="ans">Enterobacteriaceae producing H₂S and motile — think Proteus or Salmonella; further biochemical tests (urease, indole) confirm.</div></div>
+            <div class="subq"><div class="qline"><span>b) Why is CLED preferred over blood agar for urine?</span><span class="arrow">▸</span></div><div class="ans">Its electrolyte-deficient composition inhibits the swarming of Proteus, allowing accurate colony counts.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A sexually active woman presents with vaginal discharge; Gram stain of the discharge shows gram-negative intracellular diplococci.</p>
+            <div class="subq"><div class="qline"><span>a) Organism?</span><span class="arrow">▸</span></div><div class="ans">Neisseria gonorrhoeae.</div></div>
+            <div class="subq"><div class="qline"><span>b) Culture medium of choice?</span><span class="arrow">▸</span></div><div class="ans">Chocolate agar or Thayer-Martin (selective) medium.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient has a painless genital ulcer. VDRL is reactive.</p>
+            <div class="subq"><div class="qline"><span>a) Confirmatory test?</span><span class="arrow">▸</span></div><div class="ans">TPHA/TPPA or FTA-ABS.</div></div>
+            <div class="subq"><div class="qline"><span>b) Stage of syphilis?</span><span class="arrow">▸</span></div><div class="ans">Primary syphilis (painless chancre).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A child passes an earthworm-like organism (~20 cm) in stool, and has vague abdominal pain.</p>
+            <div class="subq"><div class="qline"><span>a) Organism?</span><span class="arrow">▸</span></div><div class="ans">Ascaris lumbricoides.</div></div>
+            <div class="subq"><div class="qline"><span>b) Complication of a heavy worm load?</span><span class="arrow">▸</span></div><div class="ans">Intestinal obstruction (or biliary/pancreatic duct obstruction if worms migrate).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient with recurrent cyclical fevers has ring forms seen inside RBCs on a peripheral smear.</p>
+            <div class="subq"><div class="qline"><span>a) Genus?</span><span class="arrow">▸</span></div><div class="ans">Plasmodium.</div></div>
+            <div class="subq"><div class="qline"><span>b) Type of anaemia produced?</span><span class="arrow">▸</span></div><div class="ans">Haemolytic anaemia (RBC destruction by the parasite).</div></div>
+          </div>
+        </div>
+
+        <div class="vgroup" data-group="msk">
+          <div class="vgroup-head"><span class="dot-lg" style="background:var(--path)"></span><h3>Musculoskeletal &amp; Locomotion</h3><span>5 scenarios</span></div>
+
+          <div class="vscenario"><p class="scenario-text">A 15-year-old boy has a painful, enlarging swelling around the knee. X-ray shows a "sunburst" periosteal reaction with a Codman triangle.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Osteosarcoma (osteogenic sarcoma).</div></div>
+            <div class="subq"><div class="qline"><span>b) Typical site?</span><span class="arrow">▸</span></div><div class="ans">Metaphysis of long bones, most commonly around the knee (distal femur/proximal tibia).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient has chronic discharge from a sinus over the tibia; imaging shows a dense fragment of dead bone surrounded by a new bony shell.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Chronic osteomyelitis.</div></div>
+            <div class="subq"><div class="qline"><span>b) Name the dead bone fragment and its surrounding shell.</span><span class="arrow">▸</span></div><div class="ans">Sequestrum (dead bone) enclosed by involucrum (new periosteal bone).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient has an acutely painful, red, swollen big toe. Serum uric acid is normal.</p>
+            <div class="subq"><div class="qline"><span>a) Does a normal uric acid exclude gout?</span><span class="arrow">▸</span></div><div class="ans">No — urate can shift into the inflamed joint during an acute attack, transiently normalising serum levels; joint fluid crystal analysis is more reliable.</div></div>
+            <div class="subq"><div class="qline"><span>b) What crystal shape and birefringence is seen in gout?</span><span class="arrow">▸</span></div><div class="ans">Needle-shaped, negatively birefringent monosodium urate crystals.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">An elbow X-ray is requested after a fall. On palpation, the medial epicondyle, lateral epicondyle and olecranon no longer form an equilateral triangle.</p>
+            <div class="subq"><div class="qline"><span>a) Likely diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Posterior elbow dislocation — the triangle relationship is disrupted (it is preserved in a supracondylar fracture).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A child with a suspected fracture has a normal X-ray, but clinical suspicion remains high.</p>
+            <div class="subq"><div class="qline"><span>a) Next best imaging step?</span><span class="arrow">▸</span></div><div class="ans">A bone scan (or MRI where available) — more sensitive than X-ray for occult fractures.</div></div>
+          </div>
+        </div>
+
+        <div class="vgroup" data-group="pharm">
+          <div class="vgroup-head"><span class="dot-lg" style="background:var(--pharm)"></span><h3>Pharmacology</h3><span>6 scenarios</span></div>
+
+          <div class="vscenario"><p class="scenario-text">A patient given aspirin for fever develops tinnitus and hyperventilation.</p>
+            <div class="subq"><div class="qline"><span>a) Diagnosis?</span><span class="arrow">▸</span></div><div class="ans">Salicylism — aspirin toxicity.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A cancer patient on chemotherapy develops severe mucositis after methotrexate.</p>
+            <div class="subq"><div class="qline"><span>a) Rescue drug?</span><span class="arrow">▸</span></div><div class="ans">Leucovorin (folinic acid).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient started on an IV antibiotic for meningitis develops flushing and a rash over the upper body ("red-man syndrome") during rapid infusion.</p>
+            <div class="subq"><div class="qline"><span>a) Likely drug?</span><span class="arrow">▸</span></div><div class="ans">Vancomycin.</div></div>
+            <div class="subq"><div class="qline"><span>b) Management?</span><span class="arrow">▸</span></div><div class="ans">Slow the infusion rate and give antihistamines — it is a histamine-release reaction, not true allergy.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A child requires rapid sequence intubation and is given succinylcholine; she has a recent burn injury.</p>
+            <div class="subq"><div class="qline"><span>a) Adverse effect to monitor for?</span><span class="arrow">▸</span></div><div class="ans">Hyperkalaemia, due to up-regulated extrajunctional ACh receptors causing exaggerated potassium efflux.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A TB patient on rifampicin notices orange-red discolouration of urine and tears.</p>
+            <div class="subq"><div class="qline"><span>a) Reassurance or concern?</span><span class="arrow">▸</span></div><div class="ans">Reassurance — a harmless, expected pigment effect of rifampicin.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient on amphotericin B for systemic candidiasis develops rising creatinine.</p>
+            <div class="subq"><div class="qline"><span>a) Preventive strategy?</span><span class="arrow">▸</span></div><div class="ans">Saline pre-loading, use of a liposomal formulation, and close monitoring of renal function and electrolytes.</div></div>
+          </div>
+        </div>
+
+        <div class="vgroup" data-group="mix">
+          <div class="vgroup-head"><span class="dot-lg" style="background:var(--forensic)"></span><h3>Forensic, Medicine, Surgery &amp; CFRC</h3><span>10 scenarios</span></div>
+
+          <div class="vscenario"><p class="scenario-text">A road traffic accident victim has brain injury directly beneath the site of head impact.</p>
+            <div class="subq"><div class="qline"><span>a) Term for this injury?</span><span class="arrow">▸</span></div><div class="ans">Coup injury.</div></div>
+            <div class="subq"><div class="qline"><span>b) If injury is found opposite the impact site instead?</span><span class="arrow">▸</span></div><div class="ans">Contrecoup injury.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A body is recovered from a river with fine white froth at the nostrils and mouth.</p>
+            <div class="subq"><div class="qline"><span>a) Cause of the froth?</span><span class="arrow">▸</span></div><div class="ans">Drowning — froth formed from air, water, mucus and surfactant churned together by respiratory efforts.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">An elderly man is found dead with an oblique, non-continuous ligature mark above the thyroid cartilage.</p>
+            <div class="subq"><div class="qline"><span>a) Likely cause of death?</span><span class="arrow">▸</span></div><div class="ans">Hanging (contrast with strangulation, where the mark is horizontal and continuous, at/below the thyroid cartilage).</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A body found in a field has a greenish discolouration of a bruise on the arm.</p>
+            <div class="subq"><div class="qline"><span>a) Approximate age of the bruise?</span><span class="arrow">▸</span></div><div class="ans">Around 3-5 days old, based on the sequence of colour change from haemoglobin breakdown.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A gunshot wound shows a small entry defect with inverted margins and an abrasion collar, and a larger exit wound with everted margins.</p>
+            <div class="subq"><div class="qline"><span>a) Which is the entry and which is the exit?</span><span class="arrow">▸</span></div><div class="ans">The small wound with inverted margins and an abrasion collar is the entry wound; the larger, everted wound is the exit wound.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A trauma patient scores E2, V2, M4 on assessment.</p>
+            <div class="subq"><div class="qline"><span>a) Total GCS &amp; severity?</span><span class="arrow">▸</span></div><div class="ans">Total = 8 — severe head injury, requiring airway protection/intubation.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A patient is bitten on the leg by an unidentified snake in a rural area.</p>
+            <div class="subq"><div class="qline"><span>a) Correct first aid?</span><span class="arrow">▸</span></div><div class="ans">Immobilise the limb like a splinted fracture, keep it at/below heart level, avoid tourniquet/incision/suction, and transport promptly for antivenom.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A young woman scheduled for ovarian cystectomy appears anxious during pre-operative counselling.</p>
+            <div class="subq"><div class="qline"><span>a) Best communication approach?</span><span class="arrow">▸</span></div><div class="ans">Explain the diagnosis and procedure in simple terms, address her concerns empathetically, and obtain informed consent while maintaining confidentiality.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A terminally ill patient's family requests that you not disclose the diagnosis to the patient.</p>
+            <div class="subq"><div class="qline"><span>a) Ethical approach?</span><span class="arrow">▸</span></div><div class="ans">Respect the patient's autonomy first — sensitively explore what the patient wishes to know before deferring automatically to family wishes.</div></div>
+          </div>
+
+          <div class="vscenario"><p class="scenario-text">A pharmaceutical representative offers you a gift in exchange for prescribing their product.</p>
+            <div class="subq"><div class="qline"><span>a) Correct action?</span><span class="arrow">▸</span></div><div class="ans">Decline the gift — prescribing decisions must be based solely on the patient's best interest and clinical evidence, avoiding conflicts of interest.</div></div>
+          </div>
+        </div>
+
+        <p class="empty-note" id="empty-note" style="display:none;">No stations or questions match your search — try a different term.</p>
+      </section>
+
+      <div class="sitefoot">
+        Compiled by <strong>Piyara Abuzar</strong> — Block 8 OSPE + Viva Atlas · UHS MBBS Year 3 · For revision use, free for all students
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<a href="#overview" class="back-top" id="backtop">↑</a>
+
+<script>
+  // stamp overlay
+  window.addEventListener('load', ()=>{
+    setTimeout(()=>{document.getElementById('stamp-overlay').classList.add('hide');}, 900);
+  });
+
+  // live date
+  document.getElementById('livedate').textContent = new Date().toLocaleDateString('en-GB', {day:'2-digit', month:'short', year:'numeric'});
+
+  // hamburger
+  const sidebar = document.getElementById('sidebar');
+  const hamburger = document.getElementById('hamburger');
+  hamburger.addEventListener('click', ()=> sidebar.classList.toggle('open'));
+  document.querySelectorAll('.navlist a').forEach(a=>{
+    a.addEventListener('click', ()=> sidebar.classList.remove('open'));
+  });
+
+  // accordions (station Q&A)
+  document.querySelectorAll('.qa-item').forEach(item=>{
+    item.querySelector('.qa-q').addEventListener('click', ()=>{
+      const opening = !item.classList.contains('open');
+      item.classList.toggle('open');
+      const ans = item.querySelector('.qa-a');
+      ans.style.maxHeight = opening ? ans.scrollHeight + 20 + 'px' : 0;
+    });
+  });
+
+  // accordions (viva bank subq)
+  document.querySelectorAll('.subq').forEach(item=>{
+    item.addEventListener('click', ()=>{
+      const opening = !item.classList.contains('open');
+      item.classList.toggle('open');
+      const ans = item.querySelector('.ans');
+      ans.style.maxHeight = opening ? ans.scrollHeight + 20 + 'px' : 0;
+    });
+  });
+
+  // counters
+  document.querySelectorAll('[data-count]').forEach(el=>{
+    const target = parseInt(el.getAttribute('data-count'), 10);
+    let cur = 0;
+    const step = Math.max(1, Math.round(target/40));
+    const iv = setInterval(()=>{
+      cur += step;
+      if(cur>=target){cur=target; clearInterval(iv);}
+      el.textContent = cur;
+    }, 18);
+  });
+
+  // bar chart fill on load
+  window.addEventListener('load', ()=>{
+    setTimeout(()=>{
+      document.querySelectorAll('.barfill').forEach(b=>{
+        b.style.width = b.getAttribute('data-w') + '%';
+      });
+    }, 400);
+  });
+
+  // sidebar active link on scroll
+  const sections = document.querySelectorAll('.section');
+  const navLinks = document.querySelectorAll('.navlist a');
+  const setActive = ()=>{
+    let currentId = sections[0].id;
+    sections.forEach(sec=>{
+      const rect = sec.getBoundingClientRect();
+      if(rect.top <= 120) currentId = sec.id;
+    });
+    navLinks.forEach(l=>{
+      l.classList.toggle('active', l.getAttribute('href') === '#'+currentId);
+    });
+  };
+  document.querySelector('.main').addEventListener('scroll', setActive);
+  window.addEventListener('scroll', setActive);
+  setActive();
+
+  // back to top visibility
+  const backtop = document.getElementById('backtop');
+  window.addEventListener('scroll', ()=>{
+    backtop.classList.toggle('show', window.scrollY > 500);
+  });
+
+  // search filter
+  const searchbox = document.getElementById('searchbox');
+  searchbox.addEventListener('input', ()=>{
+    const q = searchbox.value.trim().toLowerCase();
+    let anyVisible = false;
+
+    // filter station cards
+    document.querySelectorAll('.station').forEach(st=>{
+      const match = q === '' || st.textContent.toLowerCase().includes(q);
+      st.classList.toggle('no-match', !match);
+      if(match) anyVisible = true;
+    });
+
+    // filter viva scenarios
+    document.querySelectorAll('.vscenario').forEach(v=>{
+      const match = q === '' || v.textContent.toLowerCase().includes(q);
+      v.classList.toggle('no-match', !match);
+      if(match) anyVisible = true;
+    });
+
+    // hide subject sections (except overview & vivabank) entirely if no stations match
+    document.querySelectorAll('.section').forEach(sec=>{
+      if(sec.id === 'overview' || sec.id === 'vivabank') return;
+      const stations = sec.querySelectorAll('.station');
+      if(stations.length === 0) return;
+      const allHidden = Array.from(stations).every(st=>st.classList.contains('no-match'));
+      sec.style.display = allHidden && q !== '' ? 'none' : '';
+    });
+
+    // hide vgroups with all scenarios hidden
+    document.querySelectorAll('.vgroup').forEach(g=>{
+      const scenarios = g.querySelectorAll('.vscenario');
+      const allHidden = Array.from(scenarios).every(v=>v.classList.contains('no-match'));
+      g.style.display = allHidden && q !== '' ? 'none' : '';
+    });
+
+    document.getElementById('empty-note').style.display = (q !== '' && !anyVisible) ? 'block' : 'none';
+  });
+</script>
+</body>
+</html>

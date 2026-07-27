@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Piyara Abuzar — OSPE Diagram Simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Courier+Prime:wght@400;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f4f2ea;
+    --paper-line:#c9d6e3;
+    --ink-navy:#16233d;
+    --ink-navy-soft:#3a4a68;
+    --red:#b3261e;
+    --red-deep:#7a1a15;
+    --gold:#a9812f;
+    --card:#fffefb;
+    --shadow: 0 10px 30px rgba(22,35,61,.12);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 15% 8%, rgba(179,38,30,0.05), transparent 40%),
+      radial-gradient(circle at 85% 92%, rgba(22,35,61,0.06), transparent 40%),
+      var(--paper);
+    background-image:
+      repeating-linear-gradient(var(--paper) 0px, var(--paper) 33px, var(--paper-line) 34px),
+      radial-gradient(circle at 15% 8%, rgba(179,38,30,0.05), transparent 40%);
+    background-color:var(--paper);
+    font-family:'Lora',serif;
+    color:var(--ink-navy);
+    min-height:100vh;
+    padding:0 0 60px;
+  }
+  a{color:inherit;}
+  .margin-rule{
+    position:fixed; top:0; bottom:0; left:64px; width:2px; background:rgba(179,38,30,.28);
+    z-index:0; pointer-events:none;
+  }
+  @media (max-width:720px){ .margin-rule{left:34px;} }
+
+  /* HEADER */
+  header.exam-head{
+    position:relative; z-index:1;
+    max-width:900px; margin:0 auto; padding:34px 24px 18px 84px;
+  }
+  @media (max-width:720px){ header.exam-head{padding:26px 16px 14px 50px;} }
+  .brandrow{
+    display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;
+    border-bottom:3px double var(--ink-navy);
+    padding-bottom:14px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:12px;
+  }
+  .seal{
+    width:52px;height:52px;border-radius:50%;
+    border:3px solid var(--red);
+    display:flex;align-items:center;justify-content:center;
+    color:var(--red); font-family:'Oswald',sans-serif; font-weight:700; font-size:11px;
+    transform:rotate(-8deg);
+    letter-spacing:.5px;
+    flex-shrink:0;
+    background:rgba(179,38,30,.04);
+  }
+  .brand-text .kicker{
+    font-family:'Courier Prime',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase;
+    color:var(--ink-navy-soft);
+  }
+  .brand-text h1{
+    margin:2px 0 0; font-family:'Oswald',sans-serif; font-weight:700; font-size:26px; letter-spacing:.5px;
+  }
+  .brand-text h1 span{color:var(--red);}
+  .insta{
+    font-family:'Courier Prime',monospace; font-size:13px;
+    border:1.5px solid var(--ink-navy); padding:7px 12px; border-radius:3px;
+    text-decoration:none; white-space:nowrap;
+    transition:background .15s, color .15s;
+  }
+  .insta:hover{background:var(--ink-navy); color:var(--paper);}
+  .examline{
+    display:flex; gap:26px; flex-wrap:wrap; margin-top:12px; font-family:'Courier Prime',monospace; font-size:12.5px; color:var(--ink-navy-soft);
+  }
+  .examline b{color:var(--ink-navy);}
+
+  /* PROGRESS */
+  .progress-wrap{max-width:900px; margin:16px auto 0; padding:0 24px 0 84px; position:relative; z-index:1;}
+  @media (max-width:720px){ .progress-wrap{padding:0 16px 0 50px;} }
+  .progress-track{height:8px; background:#e3ddc9; border-radius:6px; overflow:hidden; border:1px solid var(--paper-line);}
+  .progress-fill{height:100%; background:linear-gradient(90deg,var(--red),var(--gold)); width:0%; transition:width .4s ease;}
+  .progress-label{font-family:'Courier Prime',monospace; font-size:11.5px; color:var(--ink-navy-soft); margin-top:6px;}
+
+  /* MAIN */
+  main{max-width:900px; margin:26px auto; padding:0 24px 0 84px; position:relative; z-index:1;}
+  @media (max-width:720px){ main{padding:0 16px 0 50px;} }
+
+  .station-card{
+    background:var(--card);
+    border:1px solid #ded6bd;
+    border-radius:6px;
+    box-shadow:var(--shadow);
+    padding:0;
+    overflow:hidden;
+    position:relative;
+    display:none;
+  }
+  .station-card.active{display:block; animation:slideIn .35s ease;}
+  @keyframes slideIn{from{opacity:0; transform:translateY(12px);} to{opacity:1; transform:none;}}
+
+  .station-top{
+    background:var(--ink-navy); color:#f2ede0;
+    padding:14px 22px;
+    display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;
+  }
+  .station-top .subj{
+    font-family:'Oswald',sans-serif; text-transform:uppercase; letter-spacing:1.5px; font-size:12.5px; color:var(--gold);
+  }
+  .station-top .num{
+    font-family:'Oswald',sans-serif; font-size:19px; font-weight:600;
+  }
+  .meta-strip{
+    display:flex; justify-content:space-between; padding:10px 22px; font-family:'Courier Prime',monospace; font-size:12.5px;
+    border-bottom:1px dashed #cfc7ac; background:#faf8f0;
+  }
+  .timer{
+    font-weight:700; color:var(--red);
+  }
+  .timer.warn{ animation:pulse 1s infinite; }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.35;}}
+
+  .photo-frame{
+    margin:20px auto 6px; max-width:420px; padding:10px; background:#fff;
+    border:1px solid #d8d0b8; box-shadow:0 6px 18px rgba(0,0,0,.15);
+    transform:rotate(-1deg);
+    position:relative;
+  }
+  .photo-frame::before{
+    content:"";
+    position:absolute; top:-10px; left:50%; transform:translateX(-50%) rotate(3deg);
+    width:34px; height:14px; background:rgba(179,38,30,.55);
+    box-shadow:0 2px 3px rgba(0,0,0,.2);
+  }
+  .photo-frame img{
+    display:block; width:100%; height:260px; object-fit:cover; background:#0d1522;
+  }
+  .photo-cap{
+    text-align:center; font-family:'Courier Prime',monospace; font-size:10.5px; color:#8a8262; margin-top:6px; letter-spacing:.5px;
+  }
+
+  .scenario{
+    padding:18px 26px 6px; font-size:15.5px; line-height:1.6;
+  }
+  .scenario .label{
+    font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); display:block; margin-bottom:6px;
+  }
+
+  .tasks{padding:6px 26px 4px;}
+  .tasks .label{
+    font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--red); margin-bottom:8px; display:block;
+  }
+  .tasks ol{margin:0; padding-left:22px;}
+  .tasks li{margin-bottom:9px; font-size:15px; line-height:1.5;}
+
+  .answer-box{
+    margin:14px 26px 22px;
+    border:1.5px dashed var(--paper-line);
+    border-radius:5px; padding:16px 18px;
+    background:#f9f8f2;
+    display:none;
+  }
+  .answer-box.shown{display:block; animation:slideIn .3s ease;}
+  .answer-box .label{
+    font-family:'Oswald',sans-serif; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-navy); margin-bottom:8px; display:block;
+  }
+  .answer-box ol{margin:0; padding-left:20px;}
+  .answer-box li{margin-bottom:8px; font-size:14.5px; line-height:1.5;}
+
+  .controls{
+    display:flex; gap:10px; flex-wrap:wrap; padding:4px 26px 22px;
+  }
+  button{
+    font-family:'Oswald',sans-serif; font-size:13px; letter-spacing:.5px; text-transform:uppercase;
+    padding:11px 18px; border-radius:4px; border:1.5px solid var(--ink-navy);
+    background:var(--ink-navy); color:#fff; cursor:pointer; transition:transform .12s, background .15s;
+  }
+  button:hover{transform:translateY(-1px);}
+  button.ghost{background:transparent; color:var(--ink-navy);}
+  button.correct{border-color:#2f7a3d; background:#2f7a3d;}
+  button.partial{border-color:#a9812f; background:#a9812f;}
+  button.missed{border-color:var(--red); background:var(--red);}
+  button:disabled{opacity:.4; cursor:not-allowed;}
+  .mark-row{display:none; gap:10px; flex-wrap:wrap; padding:0 26px 22px;}
+  .mark-row.shown{display:flex;}
+  .mark-note{padding:0 26px 4px; font-family:'Courier Prime',monospace; font-size:12px; color:var(--ink-navy-soft);}
+
+  .stamp{
+    position:absolute; top:18px; right:22px; width:78px; height:78px;
+    border:3px solid var(--red); border-radius:50%;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    color:var(--red); font-family:'Oswald',sans-serif; font-weight:700; font-size:12px;
+    transform:rotate(-14deg) scale(0);
+    opacity:0;
+    pointer-events:none;
+    transition:transform .35s cubic-bezier(.34,1.56,.64,1), opacity .25s;
+  }
+  .stamp.show{transform:rotate(-14deg) scale(1); opacity:.92;}
+  .stamp.green{border-color:#2f7a3d; color:#2f7a3d;}
+  .stamp.gold{border-color:var(--a9812f, #a9812f); color:#a9812f;}
+
+  .nav-row{
+    display:flex; justify-content:space-between; padding:18px 26px 26px; border-top:1px dashed #cfc7ac; margin-top:6px;
+  }
+
+  /* START / END SCREENS */
+  .panel{
+    background:var(--card); border:1px solid #ded6bd; border-radius:6px; box-shadow:var(--shadow);
+    padding:36px 30px; text-align:center;
+  }
+  .panel h2{font-family:'Oswald',sans-serif; font-size:24px; margin-bottom:10px;}
+  .panel p{font-size:15px; line-height:1.6; color:var(--ink-navy-soft); max-width:560px; margin:0 auto 22px;}
+  .start-btn{padding:14px 30px; font-size:14px;}
+
+  .score-slip{text-align:left;}
+  .score-slip h2{text-align:center;}
+  .score-slip .grade-seal{
+    width:120px;height:120px;border-radius:50%;border:4px solid var(--red);
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    margin:6px auto 22px; transform:rotate(-6deg); color:var(--red);
+    font-family:'Oswald',sans-serif;
+  }
+  .grade-seal .g{font-size:34px; font-weight:700; line-height:1;}
+  .grade-seal .s{font-size:10px; letter-spacing:1px; margin-top:3px;}
+  .breakdown{margin:0 0 20px;}
+  .breakdown .row{
+    display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px dashed var(--paper-line); font-family:'Courier Prime',monospace; font-size:13px;
+  }
+  .breakdown .row b{font-family:'Lora',serif; font-weight:600; font-size:14.5px;}
+
+  footer{
+    max-width:900px; margin:40px auto 0; padding:20px 24px 0 84px; position:relative; z-index:1;
+    text-align:center; font-family:'Courier Prime',monospace; font-size:12px; color:var(--ink-navy-soft);
+    border-top:1px solid var(--paper-line); padding-top:18px;
+  }
+  @media (max-width:720px){ footer{padding:20px 16px 0 50px;} }
+  footer a{color:var(--red); text-decoration:none; font-weight:700;}
+
+  .hidden{display:none !important;}
+</style>
+</head>
+<body>
+
+<div class="margin-rule"></div>
+
+<header class="exam-head">
+  <div class="brandrow">
+    <div class="brand">
+      <div class="seal">P&nbsp;A</div>
+      <div class="brand-text">
+        <div class="kicker">Medico Prep · Annual Examination 2026</div>
+        <h1>Piyara <span>Abuzar</span> OSPE Simulator</h1>
+      </div>
+    </div>
+    <a class="insta" href="https://instagram.com/piyara_abuzar" target="_blank" rel="noopener">@piyara_abuzar ↗</a>
+  </div>
+  <div class="examline">
+    <span><b>Module:</b> Diagram Identification</span>
+    <span><b>Stations:</b> 8 — Bacteriology &amp; Parasitology</span>
+    <span><b>Marks/Station:</b> 04</span>
+    <span><b>Time/Station:</b> 04 min</span>
+  </div>
+</header>
+
+<div class="progress-wrap">
+  <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+  <div class="progress-label" id="progressLabel">Station 0 of 8</div>
+</div>
+
+<main>
+
+  <section class="panel" id="startPanel">
+    <h2>Ready to enter the OSPE hall?</h2>
+    <p>8 real diagram stations — 4 bacteriology (Gram/AFB stains + a pigment-producing culture) and 4 parasitology (egg &amp; scolex identification). Every image is individually verified to load, hosted on NIH's own NCBI Bookshelf so it works on any network. Each station gives you a real-exam scenario, a genuine HD specimen photo, a 4-minute clock and numbered tasks — exactly like the paper. Answer in your head or out loud, then reveal &amp; self-mark before the bell.</p>
+    <button class="start-btn" onclick="startExam()">Begin Exam</button>
+  </section>
+
+  <div id="stationWrap"></div>
+
+  <section class="panel score-slip hidden" id="endPanel">
+    <h2>Result Slip</h2>
+    <div class="grade-seal" id="gradeSeal"><span class="g" id="gradeLetter">A</span><span class="s">PIYARA ABUZAR</span></div>
+    <p style="text-align:center;" id="scoreSummary">You scored X / 48</p>
+    <div class="breakdown" id="breakdown"></div>
+    <div style="text-align:center;">
+      <button class="ghost" onclick="restartExam()">Retake Exam</button>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Made with 🩺 for medico prep by <a href="https://instagram.com/piyara_abuzar" target="_blank" rel="noopener">@piyara_abuzar</a> — follow for daily OSPE &amp; viva drops.
+</footer>
+
+<script>
+/* ---------- STATION DATA ---------- */
+/* Every image below is hosted on ncbi.nlm.nih.gov (NIH / NCBI Bookshelf) —
+   individually verified to load, on a domain that is core global research
+   infrastructure and effectively never blocked. Plain static links, no
+   external API calls needed at runtime. */
+
+const stations = [
+  {
+    subj:"Bacteriology", title:"Gram Stain — Clustered Cocci",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK441868/bin/S.aureus.gif",
+    cap:"Gram stain, oil immersion (1000x) — Source: NCBI StatPearls",
+    scenario:"A 19-year-old presents with a painful, pus-discharging boil on the thigh. Gram stain of the pus is shown.",
+    tasks:[
+      "Identify the organism and describe its Gram-stain morphology & arrangement.",
+      "Name the two tests used to confirm this organism in the lab.",
+      "Name two pyogenic infections caused by this organism.",
+      "Name the toxin responsible for toxic shock syndrome."
+    ],
+    answers:[
+      "Staphylococcus aureus — Gram-positive cocci in grape-like clusters.",
+      "Catalase test (positive) and Coagulase test (positive).",
+      "Boils/abscess, folliculitis, wound infection, osteomyelitis (any two).",
+      "TSST-1 (Toxic Shock Syndrome Toxin-1)."
+    ]
+  },
+  {
+    subj:"Bacteriology", title:"Gram Stain — Chains of Cocci",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK554528/bin/611px-Streptococcus_pyogenes_01.jpg",
+    cap:"Gram stain, chain-forming cocci — Source: CDC/PHIL via NCBI StatPearls",
+    scenario:"A child with fever and sore throat has a throat swab Gram-stained as shown, taken from a beta-hemolytic colony on blood agar.",
+    tasks:[
+      "Identify the organism.",
+      "What hemolysis pattern is seen on blood agar and what does it indicate?",
+      "Which test differentiates this organism from Staphylococcus?",
+      "Name two non-suppurative complications of infection with this organism."
+    ],
+    answers:[
+      "Streptococcus pyogenes (Group A Streptococcus) — Gram-positive cocci in chains.",
+      "Beta-hemolysis (complete lysis of RBCs) — indicates exotoxin (streptolysin) production.",
+      "Catalase test — Streptococcus is catalase-negative, Staphylococcus is catalase-positive.",
+      "Acute rheumatic fever and acute post-streptococcal glomerulonephritis."
+    ]
+  },
+  {
+    subj:"Bacteriology", title:"Gram Stain — Diplococci in Pus",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK558903/bin/gonorrhea.jpg",
+    cap:"Urethral discharge Gram stain — Source: NCBI StatPearls",
+    scenario:"A sexually active male presents with purulent urethral discharge. Gram stain of the discharge is shown.",
+    tasks:[
+      "Identify the organism and describe its characteristic shape/arrangement.",
+      "Where are the organisms typically located in this smear?",
+      "Name the selective culture media used to grow this organism.",
+      "Name the disease caused and one long-term complication in females."
+    ],
+    answers:[
+      "Neisseria gonorrhoeae — Gram-negative, kidney/coffee-bean shaped diplococci.",
+      "Intracellular, within neutrophils/polymorphs.",
+      "Thayer–Martin medium or Chocolate agar with CO2.",
+      "Gonorrhea; complication — Pelvic Inflammatory Disease (PID) → infertility."
+    ]
+  },
+  {
+    subj:"Bacteriology", title:"Acid-Fast Stain",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK537121/bin/AFB.jpg",
+    cap:"Ziehl–Neelsen (ZN) stain, sputum smear — Source: NCBI StatPearls",
+    scenario:"A patient with chronic cough and weight loss has this ZN-stained sputum smear reported as AFB positive.",
+    tasks:[
+      "Identify the organism and describe its staining appearance.",
+      "Name the staining technique used and its principle in one line.",
+      "Name the culture medium used and the approximate incubation time.",
+      "Name the current first-line intensive-phase drug regimen (4 drugs)."
+    ],
+    answers:[
+      "Mycobacterium tuberculosis — long, slender red/pink bacilli against a blue background.",
+      "Ziehl–Neelsen stain — mycolic acid in the cell wall resists decolorization by acid-alcohol (acid-fastness).",
+      "Lowenstein–Jensen medium; 4–8 weeks (slow grower).",
+      "HRZE — Isoniazid + Rifampicin + Pyrazinamide + Ethambutol."
+    ]
+  },
+  {
+    subj:"Bacteriology · Culture Characteristics", title:"Gram Stain + Pigment-Producing Culture",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK557831/bin/Pseudomonas_aeruginosa_Gram.jpg",
+    cap:"Gram stain — Source: CDC via NCBI StatPearls",
+    scenario:"A burns-ward patient's wound dressing shows a sweetish, grape-like odour and a blue-green discoloration. Gram stain of the wound swab is shown above.",
+    tasks:[
+      "Identify the organism from its Gram-stain morphology.",
+      "Name the pigment responsible for the blue-green colour of the exudate/culture, and its chemical class.",
+      "Which single biochemical test is classically positive for this organism (and negative for Enterobacteriaceae)?",
+      "Name two clinical settings in which this organism is a classic pathogen."
+    ],
+    answers:[
+      "Pseudomonas aeruginosa — Gram-negative bacilli (pink/red rods).",
+      "Pyocyanin — a blue-green phenazine pigment.",
+      "Oxidase test — Pseudomonas is oxidase-positive; Enterobacteriaceae are oxidase-negative.",
+      "Burn-wound infection, malignant otitis externa (in diabetics), ventilator-associated pneumonia, ecthyma gangrenosum (any two)."
+    ]
+  },
+  {
+    subj:"Parasitology · Ova & Structure", title:"Stool Microscopy — Nematode Egg",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK430796/bin/Ascaris__ova.jpg",
+    cap:"Wet-mount stool microscopy — Source: CDC/PHIL via NCBI StatPearls",
+    scenario:"A child from a rural area with vague abdominal pain passes a long, cylindrical worm in the stool. A stool wet-mount is shown.",
+    tasks:[
+      "Identify the egg and describe its characteristic shell.",
+      "Trace the route this parasite's larva takes through the body before it matures back in the intestine.",
+      "Name one severe surgical complication of a heavy worm load in a child.",
+      "Name the first-line drug used for treatment."
+    ],
+    answers:[
+      "Fertilized egg of Ascaris lumbricoides — oval, with a thick, bile-stained, mammillated (bumpy) outer shell.",
+      "Faeco-oral ingestion of embryonated eggs → larvae hatch, penetrate the gut wall, travel via the portal and then systemic circulation to the lungs, ascend the bronchial tree, are swallowed, and mature in the small intestine (causing Loeffler's pneumonitis en route).",
+      "Intestinal obstruction from a bolus of worms (also biliary or pancreatic duct obstruction).",
+      "Albendazole (or mebendazole)."
+    ]
+  },
+  {
+    subj:"Parasitology · Ova & Structure", title:"Compare & Identify — Two Scolices",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK537154/bin/Taenia__Saginata__and__Solium.jpg",
+    cap:"Taenia saginata (top) and Taenia solium (bottom) scolices — Source: CDC/Dr Mae Melvin via NCBI StatPearls",
+    scenario:"Two tapeworm scolices recovered after anthelmintic purge therapy are shown side by side for species identification.",
+    tasks:[
+      "Which scolex belongs to Taenia solium and which to Taenia saginata — what single feature at the scolex separates them?",
+      "Which of the two species can also cause cysticercosis/neurocysticercosis in humans, and why?",
+      "Name the intermediate host for each species.",
+      "Name the drug of choice for adult tapeworm (taeniasis) infection."
+    ],
+    answers:[
+      "Taenia solium has a rostellum armed with a double row of hooklets plus 4 suckers (\"armed\" scolex); Taenia saginata has 4 suckers only and no hooklets (\"unarmed\" scolex).",
+      "Taenia solium — humans can act as an accidental intermediate host if T. solium eggs (not saginata eggs) are ingested, letting oncospheres form cysticerci in tissues including the brain.",
+      "T. solium → pig; T. saginata → cattle.",
+      "Praziquantel (single dose) — niclosamide is an alternative."
+    ]
+  },
+  {
+    subj:"Parasitology · Ova & Structure", title:"Perianal Itching — Identify the Worm",
+    img: "https://www.ncbi.nlm.nih.gov/books/NBK536974/bin/Head_of_Enterobius_vermicularis_human_pinworm_5230_lores.jpg",
+    cap:"Anterior end of adult worm — Source: CDC/PHIL via NCBI StatPearls",
+    scenario:"A 6-year-old has perianal itching that is worse at night; the mother reports seeing small white 'threads' near the anus each morning.",
+    tasks:[
+      "Identify the worm and name the diagnostic head structures visible in this photograph.",
+      "Name the bedside test used to confirm the diagnosis and describe exactly when/how it is performed.",
+      "Explain why the itching is characteristically nocturnal.",
+      "Name the drug of choice and one essential household hygiene measure."
+    ],
+    answers:[
+      "Enterobius vermicularis (pinworm) — the head shows lateral cuticular expansions called cephalic alae, which anchor it to the perianal mucosa.",
+      "Scotch (cellophane) tape test — clear adhesive tape is pressed against the perianal skin first thing in the morning, before bathing or defecation, then examined under the microscope for eggs.",
+      "Gravid female worms migrate out through the anus at night to lay their eggs on the perianal skin, triggering pruritus.",
+      "Albendazole or mebendazole single dose, repeated after 2 weeks; wash bedding/clothing in hot water and treat all household contacts simultaneously."
+    ]
+  }
+];
+
+/* ---------- STATE ---------- */
+let current = -1;
+let timerInterval = null;
+let results = []; // {mark: 'correct'|'partial'|'missed'}
+
+const startPanel = document.getElementById('startPanel');
+const endPanel = document.getElementById('endPanel');
+const stationWrap = document.getElementById('stationWrap');
+const progressFill = document.getElementById('progressFill');
+const progressLabel = document.getElementById('progressLabel');
+
+function startExam(){
+  startPanel.classList.add('hidden');
+  results = new Array(stations.length).fill(null);
+  buildStations();
+  current = 0;
+  showStation(0);
+}
+
+function buildStations(){
+  stationWrap.innerHTML = '';
+  stations.forEach((s, i) => {
+    const card = document.createElement('div');
+    card.className = 'station-card';
+    card.id = 'station-' + i;
+    card.innerHTML = `
+      <div class="stamp" id="stamp-${i}"></div>
+      <div class="station-top">
+        <span class="subj">${s.subj}</span>
+        <span class="num">Station ${i+1} / ${stations.length}</span>
+      </div>
+      <div class="meta-strip">
+        <span>Marks: <b>04</b></span>
+        <span class="timer" id="timer-${i}">04:00</span>
+      </div>
+      <div class="photo-frame">
+        <img id="img-${i}" alt="${s.title}" loading="lazy" src="${s.img}"
+             onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,${encodeURIComponent(placeholderSVG(s.title))}';">
+        <div class="photo-cap">${s.cap}</div>
+      </div>
+      <div class="scenario">
+        <span class="label">Scenario</span>
+        ${s.scenario}
+      </div>
+      <div class="tasks">
+        <span class="label">Task — Carefully examine the photograph and answer:</span>
+        <ol>${s.tasks.map(t=>`<li>${t}</li>`).join('')}</ol>
+      </div>
+      <div class="controls">
+        <button onclick="revealAnswer(${i})" id="reveal-${i}">Reveal Answer Key</button>
+      </div>
+      <div class="answer-box" id="answer-${i}">
+        <span class="label">Model Answer</span>
+        <ol>${s.answers.map(a=>`<li>${a}</li>`).join('')}</ol>
+      </div>
+      <div class="mark-note" id="marknote-${i}">Self-mark your response honestly before moving on:</div>
+      <div class="mark-row" id="markrow-${i}">
+        <button class="correct" onclick="mark(${i},'correct')">Correct</button>
+        <button class="partial" onclick="mark(${i},'partial')">Partial</button>
+        <button class="missed" onclick="mark(${i},'missed')">Missed</button>
+      </div>
+      <div class="nav-row">
+        <button class="ghost" onclick="prevStation()" ${i===0?'disabled':''}>← Previous</button>
+        <button class="ghost" onclick="nextStation()" id="next-${i}" disabled>Next Station →</button>
+      </div>
+    `;
+    stationWrap.appendChild(card);
+  });
+}
+
+function placeholderSVG(title){
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="420" height="260">
+    <rect width="420" height="260" fill="#0d1522"/>
+    <text x="210" y="120" fill="#c9d6e3" font-family="monospace" font-size="13" text-anchor="middle">Image source moved.</text>
+    <text x="210" y="142" fill="#a9812f" font-family="monospace" font-size="13" text-anchor="middle">${title}</text>
+    <text x="210" y="164" fill="#7d8aa1" font-family="monospace" font-size="11" text-anchor="middle">tell @piyara_abuzar the station number</text>
+  </svg>`;
+}
+
+function showStation(i){
+  document.querySelectorAll('.station-card').forEach(c=>c.classList.remove('active'));
+  document.getElementById('station-'+i).classList.add('active');
+  updateProgress();
+  startTimer(i);
+  window.scrollTo({top: stationWrap.offsetTop - 20, behavior:'smooth'});
+}
+
+function updateProgress(){
+  const answered = results.filter(r=>r!==null).length;
+  progressFill.style.width = (((current+1)/stations.length)*100) + '%';
+  progressLabel.textContent = `Station ${current+1} of ${stations.length} — ${answered} marked`;
+}
+
+function startTimer(i){
+  clearInterval(timerInterval);
+  let seconds = 240;
+  const el = document.getElementById('timer-'+i);
+  el.classList.remove('warn');
+  el.textContent = fmt(seconds);
+  timerInterval = setInterval(()=>{
+    seconds--;
+    if(seconds<=0){
+      clearInterval(timerInterval);
+      el.textContent = "00:00 — TIME UP";
+      el.classList.add('warn');
+      return;
+    }
+    if(seconds<=30) el.classList.add('warn');
+    el.textContent = fmt(seconds);
+  },1000);
+}
+function fmt(s){
+  const m = Math.floor(s/60).toString().padStart(2,'0');
+  const ss = (s%60).toString().padStart(2,'0');
+  return m+':'+ss;
+}
+
+function revealAnswer(i){
+  document.getElementById('answer-'+i).classList.add('shown');
+  document.getElementById('markrow-'+i).classList.add('shown');
+  document.getElementById('reveal-'+i).disabled = true;
+  clearInterval(timerInterval);
+}
+
+function mark(i, type){
+  results[i] = type;
+  const stamp = document.getElementById('stamp-'+i);
+  stamp.classList.remove('show','green','gold');
+  stamp.textContent = type==='correct' ? 'CORRECT' : type==='partial' ? 'PARTIAL' : 'MISSED';
+  if(type==='correct') stamp.classList.add('green');
+  if(type==='partial') stamp.classList.add('gold');
+  void stamp.offsetWidth;
+  stamp.classList.add('show');
+  document.getElementById('next-'+i).disabled = false;
+  updateProgress();
+}
+
+function nextStation(){
+  if(current < stations.length-1){
+    current++;
+    showStation(current);
+  } else {
+    finishExam();
+  }
+  if(current === stations.length-1){
+    const btn = document.getElementById('next-'+current);
+    if(btn) btn.textContent = 'Finish Exam →';
+  }
+}
+function prevStation(){
+  if(current>0){
+    current--;
+    showStation(current);
+  }
+}
+
+function finishExam(){
+  stationWrap.querySelectorAll('.station-card').forEach(c=>c.classList.remove('active'));
+  endPanel.classList.remove('hidden');
+
+  let score = 0;
+  const subjTotals = {};
+  stations.forEach((s,i)=>{
+    const r = results[i];
+    let pts = r==='correct'?4:r==='partial'?2:0;
+    score += pts;
+    if(!subjTotals[s.subj]) subjTotals[s.subj] = {got:0,max:0};
+    subjTotals[s.subj].got += pts;
+    subjTotals[s.subj].max += 4;
+  });
+  const maxScore = stations.length*4;
+  document.getElementById('scoreSummary').textContent = `You scored ${score} / ${maxScore}`;
+
+  const pct = score/maxScore*100;
+  let grade = 'C';
+  if(pct>=85) grade='A+';
+  else if(pct>=70) grade='A';
+  else if(pct>=55) grade='B';
+  else if(pct>=40) grade='C';
+  else grade='D';
+  document.getElementById('gradeLetter').textContent = grade;
+
+  const bd = document.getElementById('breakdown');
+  bd.innerHTML = Object.entries(subjTotals).map(([subj,v])=>
+    `<div class="row"><b>${subj}</b><span>${v.got} / ${v.max}</span></div>`
+  ).join('');
+
+  window.scrollTo({top: endPanel.offsetTop-20, behavior:'smooth'});
+}
+
+function restartExam(){
+  endPanel.classList.add('hidden');
+  startPanel.classList.remove('hidden');
+  clearInterval(timerInterval);
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>
